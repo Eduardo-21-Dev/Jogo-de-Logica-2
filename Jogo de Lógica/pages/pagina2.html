@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Licao 2 - Coleta de Chips</title>
+	<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body class="lesson-page">
+	<header class="game-topbar">
+		<div class="game-topbar-inner">
+			<a class="game-topbar-logo" href="../index.html">CSS MASTER</a>
+		</div>
+	</header>
+	<main class="game-shell">
+		<h1 class="title">Licao 2: colete os 4 chips com comandos</h1>
+
+		<section class="layout">
+			<article class="panel">
+				<h2>Comandos do jogador</h2>
+
+				<textarea id="cmdInput" spellcheck="false">moverCima
+moverEsquerda
+moverBaixo</textarea>
+
+				<div class="buttons">
+					<button class="btn-run" id="runBtn" type="button">Executar</button>
+					<button class="btn-reset" id="resetBtn" type="button">Resetar</button>
+				</div>
+				<button class="btn-docs" id="docsBtn" type="button">Docs</button>
+
+				<p id="status" class="status">Colete todos os 4 chips para concluir.</p>
+				<p id="chipCounter" class="chip-counter">Chips coletados: 0/4</p>
+
+				<div id="errorPanel" class="error-panel hidden" role="alert" aria-live="assertive">
+					<p class="error-panel-title">Funcao invalida detectada</p>
+					<p id="errorPanelMsg" class="error-panel-msg"></p>
+					<button class="error-panel-close" id="errorPanelClose" type="button">Fechar painel</button>
+				</div>
+
+				<div id="docsPanel" class="docs-panel hidden" role="dialog" aria-live="polite" aria-label="Documentacao de funcoes">
+					<p class="docs-panel-title">Funcoes existentes</p>
+					<ul class="docs-panel-list">
+						<li>moverDireita</li>
+						<li>moverEsquerda</li>
+						<li>moverCima</li>
+						<li>moverBaixo</li>
+					</ul>
+					<button class="docs-panel-close" id="docsPanelClose" type="button">Fechar Docs</button>
+				</div>
+			</article>
+
+			<article class="panel arena-wrap">
+				<h2>Area do jogo</h2>
+				<p class="arena-info">O boneco comeca no centro. Passe pelos chips laranja para coletar.</p>
+
+				<div class="arena" id="arena">
+					<div class="board" id="board">
+						<div class="arena-grid" id="arenaGrid"></div>
+						<div class="chips-layer" id="chipsLayer" aria-hidden="true"></div>
+						<div class="entity-cell" id="botCell" aria-label="Boneco">
+							<div class="bot"></div>
+						</div>
+					</div>
+				</div>
+			</article>
+		</section>
+
+		<div id="winPanel" class="win-panel hidden" role="dialog" aria-live="assertive" aria-label="Licao 2 concluida">
+			<div class="win-card">
+				<p class="win-eyebrow">Licao 2</p>
+				<h2 class="win-title">Fase concluida!</h2>
+				<p id="winSummary" class="win-summary">Voce coletou os 4 chips.</p>
+
+				<div id="starRating" class="star-rating stars-3" aria-label="Avaliacao da partida">
+					<span class="star">&#9733;</span>
+					<span class="star">&#9733;</span>
+					<span class="star">&#9733;</span>
+				</div>
+
+				<div class="win-actions">
+					<a class="btn-win" href="../index.html">Pagina Inicial</a>
+					<a class="btn-win btn-next" href="pagina3.html">Proxima fase</a>
+				</div>
+			</div>
+		</div>
+
+		<div id="failPanel" class="fail-panel hidden" role="dialog" aria-live="assertive" aria-label="Falha na tentativa">
+			<div class="fail-card">
+				<h2 class="fail-title">Nao deu certo!</h2>
+				<p class="fail-lead">Esses foram os problemas encontrados:</p>
+				<ul class="fail-list">
+					<li>Tom nao cumpriu todos os objetivos.</li>
+				</ul>
+				<div class="fail-actions">
+					<button class="btn-fail-ok" id="failPanelOk" type="button">Ok</button>
+				</div>
+			</div>
+		</div>
+	</main>
+
+	<script src="../assets/backend/app.js"></script>
+</body>
+</html>

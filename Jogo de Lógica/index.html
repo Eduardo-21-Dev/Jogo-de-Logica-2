@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <title>CSS Master - Jogo de Lógica CSS</title>
+</head>
+
+<body class="home-page">
+  <!-- Header Gamer -->
+  <header class="gamer-header">
+    <nav class="navbar navbar-dark">
+      <div class="container-fluid">
+        <div class="navbar-brand brand-gamer">
+          <i class="fas fa-code"></i>
+          <span class="brand-text">CSS MASTER</span>
+          <span class="brand-icon">⚡</span>
+        </div>
+
+        <!-- Menu Button -->
+        <button class="btn-menu" id="menuBtn">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main class="intro-container">
+    <div class="container-fluid">
+
+      <!-- Timeline/Tree of Lessons -->
+      <section class="lessons-timeline">
+        <div class="timeline-container">
+          <!-- Lesson Item - Current -->
+          <div class="timeline-item current">
+            <div class="timeline-marker current">
+              <i class="fas fa-play"></i>
+            </div>
+            <div class="timeline-content lesson-card active">
+              <div class="lesson-header">
+                <span class="lesson-badge">LIÇÃO 1</span>
+                <span class="difficulty-badge easy">Muito Fácil</span>
+              </div>
+              <h3 class="lesson-title">Introdução ao CSS</h3>
+              <p class="lesson-description">Aprenda os conceitos básicos de CSS e como estilizar elementos HTML</p>
+              <div class="lesson-progress">
+                <div class="progress-bar" style="width: 0%;"></div>
+              </div>
+              <a class="btn-lesson-start" href="pages/pagina1.html">
+                <i class="fas fa-play"></i> Iniciar Lição
+              </a>
+            </div>
+          </div>
+
+          <!-- Lesson Item -->
+          <div class="timeline-item locked">
+            <div class="timeline-marker locked">
+              <i class="fas fa-lock"></i>
+            </div>
+            <div class="timeline-content lesson-card">
+              <div class="lesson-header">
+                <span class="lesson-badge">LIÇÃO 2</span>
+                <span class="difficulty-badge easy">Muito Fácil</span>
+              </div>
+              <h3 class="lesson-title">Seletores CSS</h3>
+              <p class="lesson-description">Domine os diferentes tipos de seletores CSS para estilizar elementos com precisão</p>
+              <div class="lesson-progress">
+                <div class="progress-bar" style="width: 0%;"></div>
+              </div>
+              <p class="lesson-status"><i class="fas fa-lock"></i> Bloqueado - Complete a Lição 1</p>
+            </div>
+          </div>
+
+          <!-- Lesson Item -->
+          <div class="timeline-item locked">
+            <div class="timeline-marker locked">
+              <i class="fas fa-lock"></i>
+            </div>
+            <div class="timeline-content lesson-card">
+              <div class="lesson-header">
+                <span class="lesson-badge">LIÇÃO 3</span>
+                <span class="difficulty-badge easy">Fácil</span>
+              </div>
+              <h3 class="lesson-title">Modelos de Box e Espaçamentos</h3>
+              <p class="lesson-description">Understand margin, padding, border e como eles afetam o layout</p>
+              <div class="lesson-progress">
+                <div class="progress-bar" style="width: 0%;"></div>
+              </div>
+              <p class="lesson-status"><i class="fas fa-lock"></i> Bloqueado - Complete a Lição 2</p>
+            </div>
+          </div>
+
+          <!-- Lesson Item -->
+          <div class="timeline-item locked">
+            <div class="timeline-marker locked">
+              <i class="fas fa-lock"></i>
+            </div>
+            <div class="timeline-content lesson-card">
+              <div class="lesson-header">
+                <span class="lesson-badge">LIÇÃO 4</span>
+                <span class="difficulty-badge medium">Médio</span>
+              </div>
+              <h3 class="lesson-title">Flexbox - O Poder do Layout Flexível</h3>
+              <p class="lesson-description">Domine Flexbox e crie layouts responsivos e modernos com facilidade</p>
+              <div class="lesson-progress">
+                <div class="progress-bar" style="width: 0%;"></div>
+              </div>
+              <p class="lesson-status"><i class="fas fa-lock"></i> Bloqueado - Complete a Lição 3</p>
+            </div>
+          </div>
+
+          <!-- Lesson Item -->
+          <div class="timeline-item locked">
+            <div class="timeline-marker locked">
+              <i class="fas fa-lock"></i>
+            </div>
+            <div class="timeline-content lesson-card">
+              <div class="lesson-header">
+                <span class="lesson-badge">LIÇÃO 5</span>
+                <span class="difficulty-badge medium">Médio</span>
+              </div>
+              <h3 class="lesson-title">Grid CSS - Layouts Avançados</h3>
+              <p class="lesson-description">Aprenda a usar CSS Grid para criar layouts complexos e poderosos</p>
+              <div class="lesson-progress">
+                <div class="progress-bar" style="width: 0%;"></div>
+              </div>
+              <p class="lesson-status"><i class="fas fa-lock"></i> Bloqueado - Complete a Lição 4</p>
+            </div>
+          </div>
+
+          <!-- Lesson Item -->
+          <div class="timeline-item locked">
+            <div class="timeline-marker locked">
+              <i class="fas fa-lock"></i>
+            </div>
+            <div class="timeline-content lesson-card">
+              <div class="lesson-header">
+                <span class="lesson-badge">LIÇÃO 6</span>
+                <span class="difficulty-badge hard">Difícil</span>
+              </div>
+              <h3 class="lesson-title">Animações e Transições</h3>
+              <p class="lesson-description">Crie animações suaves e transições impressionantes com CSS</p>
+              <div class="lesson-progress">
+                <div class="progress-bar" style="width: 0%;"></div>
+              </div>
+              <p class="lesson-status"><i class="fas fa-lock"></i> Bloqueado - Complete a Lição 5</p>
+            </div>
+          </div>
+
+          <!-- Lesson Item -->
+          <div class="timeline-item locked">
+            <div class="timeline-marker locked">
+              <i class="fas fa-lock"></i>
+            </div>
+            <div class="timeline-content lesson-card">
+              <div class="lesson-header">
+                <span class="lesson-badge">LIÇÃO 7</span>
+                <span class="difficulty-badge hard">Difícil</span>
+              </div>
+              <h3 class="lesson-title">Transformações 3D</h3>
+              <p class="lesson-description">Crie efeitos 3D impressionantes usando CSS Transforms</p>
+              <div class="lesson-progress">
+                <div class="progress-bar" style="width: 0%;"></div>
+              </div>
+              <p class="lesson-status"><i class="fas fa-lock"></i> Bloqueado - Complete a Lição 6</p>
+            </div>
+          </div>
+
+          <!-- Lesson Item -->
+          <div class="timeline-item locked">
+            <div class="timeline-marker locked">
+              <i class="fas fa-lock"></i>
+            </div>
+            <div class="timeline-content lesson-card">
+              <div class="lesson-header">
+                <span class="lesson-badge">LIÇÃO 8</span>
+                <span class="difficulty-badge expert">Expertise</span>
+              </div>
+              <h3 class="lesson-title">Projeto Final - Website Completo</h3>
+              <p class="lesson-description">Combine todos os conhecimentos e crie um website responsivo completo</p>
+              <div class="lesson-progress">
+                <div class="progress-bar" style="width: 0%;"></div>
+              </div>
+              <p class="lesson-status"><i class="fas fa-lock"></i> Bloqueado - Complete todas as lições</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Progress Summary -->
+      <section class="progress-summary">
+        <div class="summary-cards">
+          <div class="summary-card">
+            <div class="summary-icon">📚</div>
+            <h4>Lições Completadas</h4>
+            <p class="summary-value">0 de 8</p>
+          </div>
+          <div class="summary-card">
+            <div class="summary-icon">⏱️</div>
+            <h4>Tempo Investido</h4>
+            <p class="summary-value">0m</p>
+          </div>
+          <div class="summary-card">
+            <div class="summary-icon">📈</div>
+            <h4>Taxa de Progresso</h4>
+            <p class="summary-value">0%</p>
+          </div>
+          <div class="summary-card">
+            <div class="summary-icon">🏆</div>
+            <h4>Conquistas</h4>
+            <p class="summary-value">0 ✓</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/backend/app.js"></script>
+</body>
+
+</html>

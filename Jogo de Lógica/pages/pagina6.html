@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Licao 6 - Pacotes coloridos</title>
+	<title>Licao 7 - Labirinto com pacotes</title>
 	<link rel="stylesheet" href="../assets/css/app.css">
 </head>
 <body class="lesson-page">
@@ -13,22 +13,22 @@
 		</div>
 	</header>
 	<main class="game-shell">
-		<h1 class="title">Licao 6: pacotes coloridos e bases especificas</h1>
+		<h1 class="title">Licao 7: labirinto com pacotes e blocos vermelhos</h1>
 
 		<section id="tutorialPanel" class="tutorial-panel">
 			<p class="tutorial-tag">Tutorial antes da pratica</p>
-			<h2>Como entregar pacotes coloridos</h2>
+			<h2>Como escapar dos blocos vermelhos</h2>
 			<p>
-				Nesta licao, cada pacote precisa ser levado para a base da mesma cor.
-				Use pegar() para carregar um pacote, mova ate a base correta e use largar() em cima dela.
+				Nesta licao, voce continua entregando pacotes coloridos, mas agora ha um labirinto e blocos vermelhos que se movem a cada turno.
+				Se tocar em um bloco vermelho, a fase reinicia.
 			</p>
 			<div class="tutorial-box">
 				<p>Fluxo recomendado:</p>
 				<ul>
-					<li>1. Pegue um pacote colorido</li>
-					<li>2. Leve ate a base da mesma cor</li>
-					<li>3. Use largar() em cima da base correta</li>
-					<li>4. Repita ate entregar todos os pacotes</li>
+					<li>1. Planeje a rota dentro do labirinto</li>
+					<li>2. Use pegar() quando estiver sobre um pacote</li>
+					<li>3. Leve o pacote para a base da mesma cor</li>
+					<li>4. Use largar() sem encostar nos blocos vermelhos</li>
 				</ul>
 			</div>
 			<button id="startPracticeBtn" class="btn-start-practice" type="button">Ir para a pratica</button>
@@ -37,17 +37,17 @@
 		<section id="practicePanel" class="layout hidden">
 			<article class="panel">
 				<h2>Comandos do jogador</h2>
-				<p class="hint">Entregue todos os pacotes nas bases da mesma cor usando pegar() e largar().</p>
+				<p class="hint">Evite os blocos vermelhos e entregue todos os pacotes nas bases corretas.</p>
 
-				<textarea id="cmdInput" spellcheck="false">moverDireita(2)
+				<textarea id="cmdInput" spellcheck="false">moverDireita
+moverDireita
+moverCima
 pegar()
-moverBaixo(2)
-moverDireita(3)
+moverDireita(2)
 largar()
-moverEsquerda(3)
-moverCima(2)
+moverBaixo
 pegar()
-moverDireita(5)
+moverDireita(3)
 largar()</textarea>
 
 				<div class="buttons">
@@ -56,7 +56,8 @@ largar()</textarea>
 				</div>
 				<button class="btn-docs" id="docsBtn" type="button">Docs</button>
 
-				<p id="status" class="status">Objetivo: entregar todos os pacotes nas bases corretas.</p>
+				<p id="status" class="status">Objetivo: entregar todos os pacotes e sobreviver ao labirinto.</p>
+				<p id="turnCounter" class="turn-counter">Turnos restantes: 0</p>
 
 				<div id="errorPanel" class="error-panel hidden" role="alert" aria-live="assertive">
 					<p class="error-panel-title">Comando invalido</p>
@@ -80,14 +81,16 @@ largar()</textarea>
 			</article>
 
 			<article class="panel arena-wrap">
-				<h2>Area do desafio</h2>
-				<p class="arena-info">Cada cor tem sua base especifica.</p>
+				<h2>Area do labirinto</h2>
+				<p class="arena-info">Os blocos vermelhos se movem depois de cada comando do jogador.</p>
 
 				<div class="arena" id="arena">
 					<div class="board" id="board">
 						<div class="arena-grid" id="arenaGrid"></div>
+						<div class="maze-layer" id="mazeLayer" aria-hidden="true"></div>
 						<div class="base-layer" id="baseLayer" aria-hidden="true"></div>
 						<div class="package-layer" id="packageLayer" aria-hidden="true"></div>
+						<div class="hazard-layer" id="hazardLayer" aria-hidden="true"></div>
 						<div class="entity-cell" id="botCell" aria-label="Boneco">
 							<div class="bot"></div>
 						</div>
@@ -96,15 +99,15 @@ largar()</textarea>
 			</article>
 		</section>
 
-		<div id="winPanel" class="win-panel hidden" role="dialog" aria-live="assertive" aria-label="Licao 6 concluida">
+		<div id="winPanel" class="win-panel hidden" role="dialog" aria-live="assertive" aria-label="Licao 7 concluida">
 			<div class="win-card">
-				<p class="win-eyebrow">Licao 6</p>
+				<p class="win-eyebrow">Licao 7</p>
 				<h2 class="win-title">Fase concluida!</h2>
-				<p id="winSummary" class="win-summary">Voce entregou todos os pacotes corretamente.</p>
+				<p id="winSummary" class="win-summary">Voce entregou tudo e sobreviveu ao labirinto.</p>
 
 				<div class="win-actions">
 					<a class="btn-win" href="../index.html">Pagina Inicial</a>
-					<a class="btn-win btn-next" href="pagina7.html">Proxima fase</a>
+					<a class="btn-win btn-next" href="pagina6.html">Tentar novamente</a>
 				</div>
 			</div>
 		</div>

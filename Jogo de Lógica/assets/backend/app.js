@@ -1,5 +1,218 @@
 ﻿(function () {
   const path = window.location.pathname.toLowerCase();
+	const PROGRESS_STORAGE_KEY = 'css-master-progress-v1';
+	const HARD_RESET_FLAG_KEY = 'css-master-hard-reset';
+	const TOTAL_LESSONS = 8;
+	const LAST_PLAYABLE_LESSON = 5;
+
+	// Nota: Aplica reset de progresso quando o usuario usa Ctrl+F5.
+	function setupHardResetOnCtrlF5() {
+		window.addEventListener('keydown', function (event) {
+			if (event.ctrlKey && event.key === 'F5') {
+				try {
+					sessionStorage.setItem(HARD_RESET_FLAG_KEY, '1');
+				} catch (error) {
+					// Ignora falhas de armazenamento.
+				}
+			}
+		});
+
+		try {
+			if (sessionStorage.getItem(HARD_RESET_FLAG_KEY) === '1') {
+				localStorage.removeItem(PROGRESS_STORAGE_KEY);
+				sessionStorage.removeItem(HARD_RESET_FLAG_KEY);
+			}
+		} catch (error) {
+			// Ignora falhas de armazenamento.
+		}
+	}
+
+	// Nota: Carrega o progresso salvo das fases com validacao basica.
+	function loadProgressState() {
+		try {
+			const raw = localStorage.getItem(PROGRESS_STORAGE_KEY);
+			if (!raw) {
+				return { completedLessons: [] };
+			}
+
+			const parsed = JSON.parse(raw);
+			if (!parsed || !Array.isArray(parsed.completedLessons)) {
+				return { completedLessons: [] };
+			}
+
+			const cleaned = parsed.completedLessons
+				.map(Number)
+				.filter(function (lesson) {
+					return Number.isInteger(lesson) && lesson >= 1 && lesson <= TOTAL_LESSONS;
+				})
+				.sort(function (a, b) { return a - b; });
+
+			return { completedLessons: Array.from(new Set(cleaned)) };
+		} catch (error) {
+			return { completedLessons: [] };
+		}
+	}
+
+	// Nota: Salva o progresso atual no armazenamento local do navegador.
+	function saveProgressState(progress) {
+		try {
+			localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(progress));
+		} catch (error) {
+			// Ignora falhas de armazenamento.
+		}
+	}
+
+	// Nota: Marca a fase como concluida e libera a proxima fase automaticamente.
+	function markLessonAsCompleted(lessonNumber) {
+		if (!Number.isInteger(lessonNumber) || lessonNumber < 1 || lessonNumber > TOTAL_LESSONS) {
+			return;
+		}
+
+		const progress = loadProgressState();
+		if (!progress.completedLessons.includes(lessonNumber)) {
+			progress.completedLessons.push(lessonNumber);
+			progress.completedLessons.sort(function (a, b) { return a - b; });
+			saveProgressState(progress);
+		}
+	}
+
+	// Nota: Verifica se a fase esta desbloqueada considerando a ordem de progressao.
+	function isLessonUnlocked(lessonNumber) {
+		if (lessonNumber <= 1) {
+			return true;
+		}
+
+		const progress = loadProgressState();
+		return progress.completedLessons.includes(lessonNumber - 1);
+	}
+
+	// Nota: Bloqueia acesso direto a fase nao liberada e redireciona para a home.
+	function ensureLessonAccess(lessonNumber) {
+		if (isLessonUnlocked(lessonNumber)) {
+			return true;
+		}
+
+		window.location.href = '../index.html';
+		return false;
+	}
+
+	// Nota: Mapeia o numero da licao para o arquivo de pagina correspondente.
+	function getPageNumberForLesson(lessonNumber) {
+		if (!Number.isInteger(lessonNumber) || lessonNumber < 1 || lessonNumber > LAST_PLAYABLE_LESSON) {
+			return null;
+		}
+
+		if (lessonNumber <= 2) {
+			return lessonNumber;
+		}
+
+		return lessonNumber + 1;
+	}
+
+	// Nota: Define a quantidade de vidas por fase conforme a progressao solicitada.
+	function getLivesForLesson(lessonNumber) {
+		if (lessonNumber <= 2) {
+			return 3;
+		}
+
+		if (lessonNumber <= 4) {
+			return 2;
+		}
+
+		if (lessonNumber === 5) {
+			return 1;
+		}
+
+		return 1;
+	}
+
+	// Nota: Monta e controla o HUD de vidas da fase.
+	function setupLessonLives(lessonNumber, statusEl, runBtn, failPanel) {
+		const maxLives = getLivesForLesson(lessonNumber);
+		let currentLives = maxLives;
+
+		const hud = document.createElement('div');
+		hud.className = 'lives-hud';
+
+		const label = document.createElement('span');
+		label.className = 'lives-label';
+		label.textContent = 'Vidas:';
+		hud.appendChild(label);
+
+		const hearts = [];
+		for (let i = 0; i < maxLives; i += 1) {
+			const heart = document.createElement('img');
+			heart.className = 'life-heart';
+			heart.src = '../assets/img/coracao.svg';
+			heart.alt = '';
+			heart.setAttribute('aria-hidden', 'true');
+			hud.appendChild(heart);
+			hearts.push(heart);
+		}
+
+		if (statusEl && statusEl.parentNode) {
+			statusEl.parentNode.insertBefore(hud, statusEl.nextSibling);
+		}
+
+		function renderLives() {
+			hearts.forEach(function (heart, index) {
+				heart.classList.toggle('lost', index >= currentLives);
+			});
+		}
+
+		function updateFailPanelText(message) {
+			if (!failPanel) {
+				return;
+			}
+
+			const failFirstItem = failPanel.querySelector('.fail-list li');
+			if (failFirstItem) {
+				failFirstItem.textContent = message;
+			}
+		}
+
+		// Nota: Quando acaba a ultima vida, limpa progresso e volta para a home.
+		function resetProgressAndReturnHome() {
+			try {
+				localStorage.removeItem(PROGRESS_STORAGE_KEY);
+			} catch (error) {
+				// Ignora falhas de armazenamento.
+			}
+
+			window.location.href = '../index.html';
+		}
+
+		renderLives();
+
+		return {
+			hasLives: function () {
+				return currentLives > 0;
+			},
+			registerFailure: function (failureReasonText) {
+				if (currentLives > 0) {
+					currentLives -= 1;
+				}
+
+				renderLives();
+
+				if (currentLives > 0) {
+					statusEl.className = 'status err';
+					statusEl.textContent = failureReasonText + ' Vidas restantes: ' + currentLives + '.';
+					updateFailPanelText('Tom nao cumpriu todos os objetivos. Vidas restantes: ' + currentLives + '.');
+					return currentLives;
+				}
+
+				runBtn.disabled = true;
+				statusEl.className = 'status err';
+				statusEl.textContent = 'Game over! Voce ficou sem vidas. Voltando para a pagina inicial...';
+				updateFailPanelText('Tom perdeu todas as vidas nesta fase. Recarregue para tentar novamente.');
+				setTimeout(resetProgressAndReturnHome, 900);
+				return 0;
+			}
+		};
+	}
+
+	setupHardResetOnCtrlF5();
 
 	// Nota: Escapa caracteres especiais para exibir texto com seguranca no HTML.
 	function escapeHtml(text) {
@@ -67,328 +280,209 @@
 		syncScroll();
 	}
 
+	// Nota: Exibe no painel de vitoria a letra correspondente a fase (SENAC).
+	function setupWinPanelLetter(winPanel) {
+		if (!winPanel) {
+			return;
+		}
+
+		const phaseMatch = path.match(/\/pages\/pagina(\d+)\.html$/);
+		if (!phaseMatch) {
+			return;
+		}
+
+		const phaseNumber = Number(phaseMatch[1]);
+		const letters = 'SENAC';
+		const letter = letters.charAt(phaseNumber - 1);
+		if (!letter) {
+			return;
+		}
+
+		const winCard = winPanel.querySelector('.win-card');
+		if (!winCard) {
+			return;
+		}
+
+		let letterWrap = winCard.querySelector('.win-letter-wrap');
+		if (!letterWrap) {
+			letterWrap = document.createElement('div');
+			letterWrap.className = 'win-letter-wrap';
+			const actionGroup = winCard.querySelector('.win-actions');
+			if (actionGroup) {
+				winCard.insertBefore(letterWrap, actionGroup);
+			} else {
+				winCard.appendChild(letterWrap);
+			}
+		}
+
+		const imagePath = '../assets/img/' + letter + '.png';
+		const imageAlt = 'Letra ' + letter + ' desbloqueada nesta fase';
+		let letterImage = letterWrap.querySelector('.win-letter-image');
+		if (!letterImage) {
+			letterImage = document.createElement('img');
+			letterImage.className = 'win-letter-image';
+			letterImage.decoding = 'async';
+			letterImage.addEventListener('error', function () {
+				letterWrap.classList.add('hidden');
+			});
+			letterWrap.appendChild(letterImage);
+		}
+
+		letterImage.src = imagePath;
+		letterImage.alt = imageAlt;
+	}
+
   // Route: home
 	if (path === '/' || path.endsWith('/index.html')) {
-    (function () {
-    // ===== LESSONS DATA =====
-    const lessons = [
-      {
-        id: 1,
-        title: 'IntroduÃ§Ã£o ao CSS',
-        description: 'Aprenda os conceitos bÃ¡sicos de CSS e como estilizar elementos HTML',
-        difficulty: 'easy',
-        completed: false,
-        progress: 0,
-        current: true
-      },
-      {
-        id: 2,
-        title: 'Seletores CSS',
-        description: 'Domine os diferentes tipos de seletores CSS para estilizar elementos com precisÃ£o',
-        difficulty: 'easy',
-        completed: false,
-        progress: 0,
-        locked: true
-      },
-      {
-        id: 3,
-        title: 'Modelos de Box e EspaÃ§amentos',
-        description: 'Understand margin, padding, border e como eles afetam o layout',
-        difficulty: 'easy',
-        completed: false,
-        progress: 0,
-        locked: true
-      },
-      {
-        id: 4,
-        title: 'Flexbox - O Poder do Layout FlexÃ­vel',
-        description: 'Domine Flexbox e crie layouts responsivos e modernos com facilidade',
-        difficulty: 'medium',
-        completed: false,
-        progress: 0,
-        locked: true
-      },
-      {
-        id: 5,
-        title: 'Grid CSS - Layouts AvanÃ§ados',
-        description: 'Aprenda a usar CSS Grid para criar layouts complexos e poderosos',
-        difficulty: 'medium',
-        completed: false,
-        progress: 0,
-        locked: true
-      },
-      {
-        id: 6,
-        title: 'AnimaÃ§Ãµes e TransiÃ§Ãµes',
-        description: 'Crie animaÃ§Ãµes suaves e transiÃ§Ãµes impressionantes com CSS',
-        difficulty: 'hard',
-        completed: false,
-        progress: 0,
-        locked: true
-      },
-      {
-        id: 7,
-        title: 'TransformaÃ§Ãµes 3D',
-        description: 'Crie efeitos 3D impressionantes usando CSS Transforms',
-        difficulty: 'hard',
-        completed: false,
-        progress: 0,
-        locked: true
-      },
-      {
-        id: 8,
-        title: 'Projeto Final - Website Completo',
-        description: 'Combine todos os conhecimentos e crie um website responsivo completo',
-        difficulty: 'expert',
-        completed: false,
-        progress: 0,
-        locked: true
-      }
-    ];
+		(function () {
+			// Nota: Ajusta cards e resumo da home com base no progresso persistido.
+			function renderHomeProgress() {
+				const progress = loadProgressState();
+				const completedSet = new Set(progress.completedLessons);
+				const timelineItems = Array.from(document.querySelectorAll('.timeline-item'));
 
-    // ===== GAME STATE =====
-    const gameState = {
-      currentLesson: 1,
-      completedLessons: 0,
-      totalLessons: 8,
-      timeInvested: '0m',
-      progressPercentage: 0,
-      achievements: 0,
-      streak: 0
-    };
+				timelineItems.forEach(function (item, index) {
+					const lessonId = index + 1;
+					const pageNumber = getPageNumberForLesson(lessonId);
+					const marker = item.querySelector('.timeline-marker');
+					const markerIcon = marker ? marker.querySelector('i') : null;
+					const lessonCard = item.querySelector('.lesson-card');
+					const progressBar = lessonCard ? lessonCard.querySelector('.progress-bar') : null;
+					let status = lessonCard ? lessonCard.querySelector('.lesson-status') : null;
+					let startButton = lessonCard ? lessonCard.querySelector('.btn-lesson-start') : null;
 
-    // ===== DOM ELEMENTS =====
-    const menuBtn = document.getElementById('menuBtn');
+					const isCompleted = completedSet.has(lessonId);
+					const unlockedByProgress = lessonId === 1 || completedSet.has(lessonId - 1);
+					const isUnlocked = unlockedByProgress || isCompleted;
+					const hasPlayablePage = pageNumber !== null;
 
-    // ===== INITIALIZATION =====
-    document.addEventListener('DOMContentLoaded', () => {
-      initializeUI();
-      setupEventListeners();
-      updateProgress();
-    });
+					item.classList.remove('current', 'locked', 'completed');
 
-    // ===== INITIALIZE UI =====
-    // Nota: Inicializa elementos e estados necessarios antes da interacao do usuario.
-    function initializeUI() {
-      updateProgress();
-      setupLessonCards();
-      logWelcomeMessage();
-    }
+					if (isCompleted) {
+						item.classList.add('completed');
+						if (marker) {
+							marker.classList.remove('locked', 'current');
+						}
+						if (markerIcon) {
+							markerIcon.className = 'fas fa-check';
+						}
+						if (progressBar) {
+							progressBar.style.width = '100%';
+						}
 
-    // ===== SETUP EVENT LISTENERS =====
-    // Nota: Configura o comportamento inicial desta parte da interface.
-    function setupEventListeners() {
-      // Lesson card clicks
-      document.querySelectorAll('.lesson-card').forEach((card, index) => {
-        card.addEventListener('click', () => handleLessonClick(index + 1));
-      });
-      
-      // Start lesson button
-      const startLessonBtns = document.querySelectorAll('.btn-lesson-start');
-      startLessonBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          handleStartLesson();
-        });
-      });
-      
-      // Menu button
-      menuBtn.addEventListener('click', toggleMenu);
-    }
+						if (!startButton && lessonCard && hasPlayablePage) {
+							startButton = document.createElement('a');
+							startButton.className = 'btn-lesson-start';
+							lessonCard.appendChild(startButton);
+						}
+						if (startButton && hasPlayablePage) {
+							startButton.href = 'pages/pagina' + pageNumber + '.html';
+							startButton.innerHTML = '<i class="fas fa-redo"></i> Revisar Licao';
+						}
 
-    // ===== UPDATE PROGRESS =====
-    // Nota: Implementa uma parte especifica da logica desta licao.
-    function updateProgress() {
-      // Progress tracking removido - stats bar desativada
-    }
+						if (!status && lessonCard) {
+							status = document.createElement('p');
+							status.className = 'lesson-status';
+							lessonCard.appendChild(status);
+						}
+						if (status) {
+							status.innerHTML = '<i class="fas fa-check-circle"></i> Concluida';
+						}
+						return;
+					}
 
-    // ===== SETUP LESSON CARDS ANIMATIONS =====
-    // Nota: Configura o comportamento inicial desta parte da interface.
-    function setupLessonCards() {
-      const cards = document.querySelectorAll('.timeline-item');
-      cards.forEach((card, index) => {
-        card.style.animationDelay = `${index * 0.1}s`;
-      });
-    }
+					if (isUnlocked) {
+						item.classList.add('current');
+						if (marker) {
+							marker.classList.remove('locked');
+							marker.classList.add('current');
+						}
+						if (markerIcon) {
+							markerIcon.className = 'fas fa-play';
+						}
+						if (progressBar) {
+							progressBar.style.width = '0%';
+						}
 
-    // ===== HANDLE LESSON CLICK =====
-    // Nota: Trata uma acao do usuario e aplica a regra correspondente.
-    function handleLessonClick(lessonId) {
-      const lesson = lessons[lessonId - 1];
-      
-      if (lesson.locked) {
-        showNotification(
-          `ðŸ”’ Complete a LiÃ§Ã£o ${lessonId - 1} primeiro!`,
-          'warning'
-        );
-        return;
-      }
-      
-      if (lesson.completed) {
-        showNotification(
-          `âœ“ VocÃª jÃ¡ completou "${lesson.title}"!`,
-          'info'
-        );
-      } else if (lesson.current) {
-        showNotification(
-          `â–¶ï¸ Clique em "Continuar LiÃ§Ã£o" para prosseguir!`,
-          'info'
-        );
-      }
-    }
+						if (!startButton && lessonCard && hasPlayablePage) {
+							startButton = document.createElement('a');
+							startButton.className = 'btn-lesson-start';
+							lessonCard.appendChild(startButton);
+						}
+						if (startButton) {
+							if (hasPlayablePage) {
+								startButton.href = 'pages/pagina' + pageNumber + '.html';
+								startButton.innerHTML = '<i class="fas fa-play"></i> Iniciar Licao';
+							} else {
+								startButton.remove();
+								startButton = null;
+							}
+						}
 
-    // ===== HANDLE START LESSON =====
-    // Nota: Trata uma acao do usuario e aplica a regra correspondente.
-    function handleStartLesson() {
-      const currentLesson = lessons.find(l => l.current);
-      
-      if (!currentLesson) {
-        showNotification('Nenhuma liÃ§Ã£o ativa encontrada!', 'warning');
-        return;
-      }
-      
-      showNotification(
-        `ðŸš€ Iniciando "${currentLesson.title}"...`,
-        'success'
-      );
-      
-      // Simulate loading lesson page
-      setTimeout(() => {
-        // Aqui vocÃª pode redirecionar para a pÃ¡gina da liÃ§Ã£o
-        console.log(`Carregando liÃ§Ã£o: ${currentLesson.title}`);
-        // window.location.href = `lesson-${currentLesson.id}.html`;
-      }, 800);
-    }
+						if (!status && lessonCard) {
+							status = document.createElement('p');
+							status.className = 'lesson-status';
+							lessonCard.appendChild(status);
+						}
+						if (status) {
+							status.innerHTML = hasPlayablePage
+								? '<i class="fas fa-unlock"></i> Pronta para jogar'
+								: '<i class="fas fa-flask"></i> Em breve';
+						}
+						return;
+					}
 
-    // ===== HANDLE LESSON COMPLETION =====
-    // Nota: Implementa uma parte especifica da logica desta licao.
-    function completeLesson(lessonId) {
-      const lesson = lessons[lessonId - 1];
-      
-      if (!lesson.completed) {
-        lesson.completed = true;
-        lesson.progress = 100;
-        
-        // Unlock next lesson
-        if (lessonId < lessons.length) {
-          lessons[lessonId].locked = false;
-        }
-        
-        gameState.completedLessons++;
-        gameState.streak++;
-        updateProgress();
-        
-        showNotification(
-          `ðŸŽ‰ ParabÃ©ns! VocÃª completou "${lesson.title}"!`,
-          'success'
-        );
-      }
-    }
+					item.classList.add('locked');
+					if (marker) {
+						marker.classList.add('locked');
+						marker.classList.remove('current');
+					}
+					if (markerIcon) {
+						markerIcon.className = 'fas fa-lock';
+					}
+					if (progressBar) {
+						progressBar.style.width = '0%';
+					}
+					if (startButton) {
+						startButton.remove();
+					}
+					if (!status && lessonCard) {
+						status = document.createElement('p');
+						status.className = 'lesson-status';
+						lessonCard.appendChild(status);
+					}
+					if (status) {
+						status.innerHTML = '<i class="fas fa-lock"></i> Bloqueado - Complete a Licao ' + (lessonId - 1);
+					}
+				});
 
-    // ===== NOTIFICATIONS =====
-    // Nota: Exibe o painel ou feedback correspondente desta etapa.
-    function showNotification(message, type = 'info') {
-      const notification = document.createElement('div');
-      notification.className = `notification notification-${type}`;
-      notification.textContent = message;
-      notification.style.cssText = `
-        position: fixed;
-        top: 100px;
-        right: 20px;
-        padding: 1rem 1.5rem;
-        background: ${getNotificationColor(type)};
-        color: ${type === 'info' || type === 'warning' ? '#000' : '#fff'};
-        border-radius: 8px;
-        font-weight: bold;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
-        z-index: 10000;
-        animation: slideInRight 0.3s ease;
-        max-width: 400px;
-      `;
-      
-      document.body.appendChild(notification);
-      
-      setTimeout(() => {
-        notification.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
-      }, 3000);
-    }
+				const completedCount = progress.completedLessons.length;
+				const percentage = Math.floor((completedCount / TOTAL_LESSONS) * 100);
+				const summaryValues = document.querySelectorAll('.summary-value');
+				if (summaryValues[0]) {
+					summaryValues[0].textContent = completedCount + ' de ' + TOTAL_LESSONS;
+				}
+				if (summaryValues[1]) {
+					summaryValues[1].textContent = completedCount * 5 + 'm';
+				}
+				if (summaryValues[2]) {
+					summaryValues[2].textContent = percentage + '%';
+				}
+				if (summaryValues[3]) {
+					summaryValues[3].textContent = completedCount + ' ✓';
+				}
+			}
 
-    // Nota: Retorna um valor de apoio para uso na logica da fase.
-    function getNotificationColor(type) {
-      const colors = {
-        success: '#00ff41',
-        danger: '#ff4757',
-        warning: '#ffa502',
-        info: '#00d4ff'
-      };
-      return colors[type] || colors.info;
-    }
-
-    // ===== MENU =====
-    // Nota: Alterna um estado visual ou de interacao da interface.
-    function toggleMenu() {
-      showNotification('ðŸ“‹ Menu de OpÃ§Ãµes (Em Desenvolvimento)', 'info');
-    }
-
-    // ===== ADD CUSTOM ANIMATIONS =====
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes slideInRight {
-        from {
-          opacity: 0;
-          transform: translateX(100px);
-        }
-        to {
-          opacity: 1;
-          transform: translateX(0);
-        }
-      }
-      
-      @keyframes slideOutRight {
-        from {
-          opacity: 1;
-          transform: translateX(0);
-        }
-        to {
-          opacity: 0;
-          transform: translateX(100px);
-        }
-      }
-
-      .timeline-item {
-        animation: fadeInUp 0.6s ease-out forwards;
-        opacity: 0;
-      }
-
-      @keyframes fadeInUp {
-        from {
-          opacity: 0;
-          transform: translateY(30px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-    `;
-    document.head.appendChild(style);
-
-    // ===== WELCOME MESSAGE =====
-    // Nota: Implementa uma parte especifica da logica desta licao.
-    function logWelcomeMessage() {
-      console.log('%cðŸŽ® Bem-vindo ao CSS MASTER! ðŸŽ®', 'font-size: 20px; color: #0066cc; font-weight: bold;');
-      console.log('%cAprenda CSS de forma divertida e interativa!', 'font-size: 14px; color: #7209b7; font-weight: bold;');
-      console.log('%cProgressÃ£o: 0 de 8 liÃ§Ãµes completadas (0%)', 'font-size: 12px; color: #00b366;');
-      console.log('%cComece pela LiÃ§Ã£o 1: IntroduÃ§Ã£o ao CSS', 'font-size: 12px; color: #ff9900;');
-    }
-
-    })();
+			document.addEventListener('DOMContentLoaded', renderHomeProgress);
+		})();
     return;
   }
 
   // Route: pagina1
 	if (path.endsWith('/pages/pagina1.html')) {
+		if (!ensureLessonAccess(1)) {
+			return;
+		}
     (function () {
     const CELL = 52;
     const COLS = 10;
@@ -413,6 +507,9 @@
     const starRating = document.getElementById('starRating');
     const failPanel = document.getElementById('failPanel');
     const failPanelOk = document.getElementById('failPanelOk');
+
+		setupWinPanelLetter(winPanel);
+		const livesSystem = setupLessonLives(1, statusEl, runBtn, failPanel);
 
     const start = {
     	col: 0,
@@ -565,6 +662,12 @@
     	hideWinPanel();
     	hideFailPanel();
 
+		if (!livesSystem.hasLives()) {
+			statusEl.className = 'status err';
+			statusEl.textContent = 'Game over! Voce ficou sem vidas nesta fase.';
+			return;
+		}
+
     	const lines = cmdInput.value
     		.split('\n')
     		.map(line => line.trim())
@@ -639,14 +742,14 @@
     	if (state.col === goal.col && state.row === goal.row) {
     		statusEl.className = 'status ok';
     		statusEl.textContent = 'Excelente! Voce chegou ao bloco objetivo.';
+	    	markLessonAsCompleted(1);
     		showWinPanel(executedSteps);
     		return;
     	}
 
     	state = { col: start.col, row: start.row };
     	draw();
-    	statusEl.className = 'status err';
-    	statusEl.textContent = 'Falha na rota: a fase foi resetada para nova tentativa.';
+		livesSystem.registerFailure('Falha na rota: a fase foi resetada para nova tentativa.');
     	showFailPanel();
     }
 
@@ -678,6 +781,9 @@
 
   // Route: pagina2
 	if (path.endsWith('/pages/pagina2.html')) {
+		if (!ensureLessonAccess(2)) {
+			return;
+		}
     (function () {
     const CELL = 52;
     const COLS = 11;
@@ -702,6 +808,9 @@
     const winSummary = document.getElementById('winSummary');
     const failPanel = document.getElementById('failPanel');
     const failPanelOk = document.getElementById('failPanelOk');
+
+		setupWinPanelLetter(winPanel);
+		const livesSystem = setupLessonLives(2, statusEl, runBtn, failPanel);
 
     const start = {
     	col: Math.floor(COLS / 2),
@@ -819,7 +928,7 @@
 
     // Nota: Exibe o painel ou feedback correspondente desta etapa.
     function showWinPanel(executedSteps) {
-    	winSummary.textContent = 'Voce coletou os 4 chips em ' + executedSteps + ' passos.';
+	    winSummary.textContent = 'Voce coletou as 4 moedas em ' + executedSteps + ' passos.';
     	winPanel.classList.remove('hidden');
     }
 
@@ -851,8 +960,32 @@
     // Nota: Implementa uma parte especifica da logica desta licao.
     function updateChipCounter() {
     	const collectedCount = state.collected.size;
-    	chipCounter.textContent = 'Chips coletados: ' + collectedCount + '/' + chips.length;
+	    chipCounter.textContent = 'Moedas coletadas: ' + collectedCount + '/' + chips.length;
     	chipCounter.classList.toggle('done', collectedCount === chips.length);
+    }
+
+    // Nota: Cria um breve efeito visual para indicar a coleta do chip.
+    function spawnChipCollectEffect(col, row) {
+    	const pop = document.createElement('div');
+    	pop.className = 'chip-pop';
+
+    	const ring = document.createElement('div');
+    	ring.className = 'chip-pop-ring';
+    	pop.appendChild(ring);
+
+    	for (let i = 0; i < 8; i += 1) {
+    		const spark = document.createElement('span');
+    		spark.className = 'chip-pop-spark';
+    		spark.style.setProperty('--spark-angle', String(i * 45) + 'deg');
+    		pop.appendChild(spark);
+    	}
+
+    	setEntityPosition(pop, col, row);
+    	chipsLayer.appendChild(pop);
+
+    	pop.addEventListener('animationend', function () {
+    		pop.remove();
+    	});
     }
 
     // Nota: Coleta itens quando o jogador passa na posicao correta.
@@ -864,6 +997,7 @@
     			if (chipEl) {
     				chipEl.classList.add('collected');
     			}
+			spawnChipCollectEffect(chip.col, chip.row);
     			updateChipCounter();
     			break;
     		}
@@ -880,6 +1014,12 @@
     	hideErrorPanel();
     	hideWinPanel();
     	hideFailPanel();
+
+		if (!livesSystem.hasLives()) {
+			statusEl.className = 'status err';
+			statusEl.textContent = 'Game over! Voce ficou sem vidas nesta fase.';
+			return;
+		}
 
     	const lines = cmdInput.value
     		.split('\n')
@@ -955,7 +1095,8 @@
 
     	if (state.collected.size === chips.length) {
     		statusEl.className = 'status ok';
-    		statusEl.textContent = 'Perfeito! Voce coletou todos os chips.';
+	    	statusEl.textContent = 'Perfeito! Voce coletou todas as moedas.';
+	    	markLessonAsCompleted(2);
     		showWinPanel(executedSteps);
     		return;
     	}
@@ -969,8 +1110,7 @@
     	draw();
     	collectChipAtCurrentPosition();
     	updateChipCounter();
-    	statusEl.className = 'status err';
-    	statusEl.textContent = 'Falha na rota: a fase foi resetada para nova tentativa.';
+		livesSystem.registerFailure('Falha na rota: a fase foi resetada para nova tentativa.');
     	showFailPanel();
     }
 
@@ -1008,6 +1148,9 @@
 
   // Route: pagina3
 	if (path.endsWith('/pages/pagina3.html')) {
+		if (!ensureLessonAccess(3)) {
+			return;
+		}
     (function () {
     const CELL = 52;
     const COLS = 10;
@@ -1032,6 +1175,9 @@
     const winSummary = document.getElementById('winSummary');
     const failPanel = document.getElementById('failPanel');
     const failPanelOk = document.getElementById('failPanelOk');
+
+		setupWinPanelLetter(winPanel);
+		const livesSystem = setupLessonLives(3, statusEl, runBtn, failPanel);
 
     const start = {
     	col: 0,
@@ -1157,6 +1303,12 @@
     	hideWinPanel();
     	hideFailPanel();
 
+		if (!livesSystem.hasLives()) {
+			statusEl.className = 'status err';
+			statusEl.textContent = 'Game over! Voce ficou sem vidas nesta fase.';
+			return;
+		}
+
     	const lines = cmdInput.value
     		.split('\n')
     		.map(line => line.trim())
@@ -1235,22 +1387,21 @@
     		if (!usedParameter) {
     			state = { col: start.col, row: start.row };
     			draw();
-    			statusEl.className = 'status err';
-    			statusEl.textContent = 'Falha: voce chegou ao alvo sem usar parametro. A fase foi resetada.';
+				livesSystem.registerFailure('Falha: voce chegou ao alvo sem usar parametro. A fase foi resetada.');
     			showFailPanel();
     			return;
     		}
 
     		statusEl.className = 'status ok';
     		statusEl.textContent = 'Excelente! Voce usou parametros e concluiu a pratica.';
+	    	markLessonAsCompleted(3);
     		showWinPanel(executedSteps);
     		return;
     	}
 
     	state = { col: start.col, row: start.row };
     	draw();
-    	statusEl.className = 'status err';
-    	statusEl.textContent = 'Falha na rota: a fase foi resetada para nova tentativa.';
+		livesSystem.registerFailure('Falha na rota: a fase foi resetada para nova tentativa.');
     	showFailPanel();
     }
 
@@ -1284,8 +1435,11 @@
     return;
   }
 
-  // Route: pagina4
-	if (path.endsWith('/pages/pagina4.html')) {
+  // Route: pagina3
+	if (path.endsWith('/pages/pagina3.html')) {
+		if (!ensureLessonAccess(4)) {
+			return;
+		}
     (function () {
     const CELL = 44;
     const COLS = 13;
@@ -1310,6 +1464,9 @@
     const starRating = document.getElementById('starRating');
     const failPanel = document.getElementById('failPanel');
     const failPanelOk = document.getElementById('failPanelOk');
+
+		setupWinPanelLetter(winPanel);
+		const livesSystem = setupLessonLives(4, statusEl, runBtn, failPanel);
 
     const maze = createComplexMaze();
 
@@ -1650,6 +1807,12 @@
     	hideWinPanel();
     	hideFailPanel();
 
+		if (!livesSystem.hasLives()) {
+			statusEl.className = 'status err';
+			statusEl.textContent = 'Game over! Voce ficou sem vidas nesta fase.';
+			return;
+		}
+
     	const lines = cmdInput.value
     		.split('\n')
     		.map(line => line.trim())
@@ -1717,14 +1880,14 @@
     	if (state.col === goal.col && state.row === goal.row) {
     		statusEl.className = 'status ok';
     		statusEl.textContent = 'Excelente! Voce decifrou o labirinto.';
+	    	markLessonAsCompleted(4);
     		showWinPanel(executedSteps, blockedMoves);
     		return;
     	}
 
     	state = { col: start.col, row: start.row };
     	draw();
-    	statusEl.className = 'status err';
-    	statusEl.textContent = 'Falha na rota: a fase foi resetada para nova tentativa.';
+		livesSystem.registerFailure('Falha na rota: a fase foi resetada para nova tentativa.');
     	showFailPanel();
     }
 
@@ -1754,8 +1917,11 @@
     return;
   }
 
-  // Route: pagina5
-	if (path.endsWith('/pages/pagina5.html')) {
+  // Route: pagina4
+	if (path.endsWith('/pages/pagina4.html')) {
+		if (!ensureLessonAccess(3)) {
+			return;
+		}
     (function () {
     const CELL = 52;
     const COLS = 11;
@@ -1786,6 +1952,9 @@
     const winSummary = document.getElementById('winSummary');
     const failPanel = document.getElementById('failPanel');
     const failPanelOk = document.getElementById('failPanelOk');
+
+		setupWinPanelLetter(winPanel);
+		const livesSystem = setupLessonLives(3, statusEl, runBtn, failPanel);
 
     const startBot = { col: 1, row: ROWS - 2 };
     const startBox = { col: 3, row: ROWS - 4 };
@@ -2174,6 +2343,12 @@
     	hideWinPanel();
     	hideFailPanel();
 
+		if (!livesSystem.hasLives()) {
+			statusEl.className = 'status err';
+			statusEl.textContent = 'Game over! Voce ficou sem vidas nesta fase.';
+			return;
+		}
+
     	const lines = cmdInput.value
     		.split('\n')
     		.map(line => line.trim())
@@ -2244,6 +2419,7 @@
     	if (state.delivered && state.usedPickCommand && state.usedDropCommand) {
     		statusEl.className = 'status ok';
     		statusEl.textContent = 'Excelente! Voce pegou e largou a caixa no alvo.';
+	    	markLessonAsCompleted(3);
     		showWinPanel(executedSteps);
     		return;
     	}
@@ -2259,8 +2435,7 @@
     		usedDropCommand: false
     	};
     	draw();
-    	statusEl.className = 'status err';
-    	statusEl.textContent = 'Falha na rota: a fase foi resetada para nova tentativa.';
+		livesSystem.registerFailure('Falha na rota: a fase foi resetada para nova tentativa.');
     	showFailPanel();
     }
 
@@ -2308,8 +2483,11 @@
     return;
   }
 
-  // Route: pagina6
-	if (path.endsWith('/pages/pagina6.html')) {
+  // Route: pagina5
+	if (path.endsWith('/pages/pagina5.html')) {
+		if (!ensureLessonAccess(4)) {
+			return;
+		}
     (function () {
     const CELL = 52;
     const COLS = 11;
@@ -2338,6 +2516,8 @@
     const winSummary = document.getElementById('winSummary');
     const failPanel = document.getElementById('failPanel');
     const failPanelOk = document.getElementById('failPanelOk');
+
+		setupWinPanelLetter(winPanel);
 
     const startBot = { col: 1, row: ROWS - 2 };
     const bases = [
@@ -2716,6 +2896,7 @@
     	if (allPackagesDelivered()) {
     		statusEl.className = 'status ok';
     		statusEl.textContent = 'Excelente! Voce entregou todos os pacotes nas bases corretas.';
+	    	markLessonAsCompleted(4);
     		showWinPanel(executedSteps);
     		return;
     	}
@@ -2781,8 +2962,11 @@
     return;
   }
 
-  // Route: pagina7
-	if (path.endsWith('/pages/pagina7.html')) {
+  // Route: pagina6
+	if (path.endsWith('/pages/pagina6.html')) {
+		if (!ensureLessonAccess(5)) {
+			return;
+		}
     (function () {
     const CELL = 44;
     const COLS = 13;
@@ -2814,6 +2998,8 @@
     const winSummary = document.getElementById('winSummary');
     const failPanel = document.getElementById('failPanel');
     const failPanelOk = document.getElementById('failPanelOk');
+
+		setupWinPanelLetter(winPanel);
 
     const startBot = { col: 1, row: ROWS - 2 };
     const bases = [
@@ -3386,6 +3572,7 @@
     	if (allPackagesDelivered() && state.usedPickCommand && state.usedDropCommand) {
     		statusEl.className = 'status ok';
     		statusEl.textContent = 'Excelente! Voce entregou todos os pacotes e evitou os blocos vermelhos.';
+	    	markLessonAsCompleted(5);
     		showWinPanel(executedSteps);
     		return;
     	}

@@ -3,24 +3,55 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Licao 4 - Labirinto Avancado</title>
+	<title>Licao 5 - Funcao pegar()</title>
 	<link rel="stylesheet" href="../assets/css/app.css">
 </head>
 <body class="lesson-page">
 	<header class="game-topbar">
 		<div class="game-topbar-inner">
-			<a class="game-topbar-logo" href="../index.html">CSS MASTER</a>
+			<a class="game-topbar-logo" href="../index.html">SENAC Code Challenge</a>
 		</div>
 	</header>
 	<main class="game-shell">
-		<h1 class="title">Licao 4: labirinto complexo</h1>
+		<h1 class="title">Licao 5: carregar caixa com pegar()</h1>
 
-		<section class="layout">
+		<section id="tutorialPanel" class="tutorial-panel">
+			<p class="tutorial-tag">Tutorial antes da pratica</p>
+			<h2>Novas funcoes: pegar() e largar()</h2>
+			<p>
+				Nesta licao, voce precisa encostar na caixa, usar pegar(), levar ate o alvo e usar largar() em cima do destino.
+			</p>
+			<div class="tutorial-box">
+				<p>Fluxo recomendado:</p>
+				<ul>
+					<li>1. Mover ate a caixa</li>
+					<li>2. Executar pegar()</li>
+					<li>3. Levar a caixa para o destino</li>
+					<li>4. Executar largar() em cima do alvo</li>
+				</ul>
+			</div>
+
+			<div class="tutorial-video-wrap">
+				<p class="tutorial-video-title">Video demonstrativo</p>
+				<video id="demoVideo" class="tutorial-video" controls muted loop playsinline></video>
+				<p id="demoVideoNote" class="tutorial-video-note">Gerando demonstracao...</p>
+			</div>
+
+			<button id="startPracticeBtn" class="btn-start-practice" type="button">Ir para a pratica</button>
+		</section>
+
+		<section id="practicePanel" class="layout hidden">
 			<article class="panel">
 				<h2>Comandos do jogador</h2>
-				<p class="hint">Labirinto avancado com varias rotas falsas. Apenas uma leva ao objetivo.</p>
+				<p class="hint">Use pegar() para carregar a caixa e largar() sobre o alvo laranja.</p>
 
-				<textarea id="cmdInput" spellcheck="false"></textarea>
+				<textarea id="cmdInput" spellcheck="false">moverDireita(2)
+moverCima
+pegar()
+moverBaixo(2)
+moverDireita(4)
+moverCima(2)
+largar()</textarea>
 
 				<div class="buttons">
 					<button class="btn-run" id="runBtn" type="button">Executar</button>
@@ -28,7 +59,7 @@
 				</div>
 				<button class="btn-docs" id="docsBtn" type="button">Docs</button>
 
-				<p id="status" class="status">Chegue ao alvo verde pelo unico caminho correto.</p>
+				<p id="status" class="status">Objetivo: pegar a caixa e largar em cima do destino.</p>
 
 				<div id="errorPanel" class="error-panel hidden" role="alert" aria-live="assertive">
 					<p class="error-panel-title">Comando invalido</p>
@@ -44,20 +75,25 @@
 						<li>moverCima</li>
 						<li>moverBaixo</li>
 						<li>Com parametro: moverDireita(3)</li>
+						<li>Nova funcao: pegar()</li>
+						<li>Nova funcao: largar()</li>
 					</ul>
 					<button class="docs-panel-close" id="docsPanelClose" type="button">Fechar Docs</button>
 				</div>
 			</article>
 
 			<article class="panel arena-wrap">
-				<h2>Area do labirinto</h2>
-				<p class="arena-info">Paredes escuras bloqueiam movimento. Becos sem saida consomem passos.</p>
+				<h2>Area do desafio</h2>
+				<p class="arena-info">A caixa marrom deve terminar dentro da area laranja.</p>
 
 				<div class="arena" id="arena">
 					<div class="board" id="board">
 						<div class="arena-grid" id="arenaGrid"></div>
-						<div class="entity-cell" id="goalCell" aria-hidden="true">
-							<div class="goal"></div>
+						<div class="entity-cell" id="targetCell" aria-hidden="true">
+							<div class="target"></div>
+						</div>
+						<div class="entity-cell" id="boxCell" aria-label="Caixa">
+							<div class="box"></div>
 						</div>
 						<div class="entity-cell" id="botCell" aria-label="Boneco">
 							<div class="bot"></div>
@@ -67,17 +103,11 @@
 			</article>
 		</section>
 
-		<div id="winPanel" class="win-panel hidden" role="dialog" aria-live="assertive" aria-label="Licao 4 concluida">
+		<div id="winPanel" class="win-panel hidden" role="dialog" aria-live="assertive" aria-label="Licao 5 concluida">
 			<div class="win-card">
-				<p class="win-eyebrow">Licao 4</p>
+				<p class="win-eyebrow">Licao 5</p>
 				<h2 class="win-title">Fase concluida!</h2>
-				<p id="winSummary" class="win-summary">Voce venceu o labirinto.</p>
-
-				<div id="starRating" class="star-rating" aria-label="Avaliacao da partida">
-					<span class="star">&#9733;</span>
-					<span class="star">&#9733;</span>
-					<span class="star">&#9733;</span>
-				</div>
+				<p id="winSummary" class="win-summary">Voce usou pegar() e largar() corretamente.</p>
 
 				<div class="win-actions">
 					<a class="btn-win" href="../index.html">Pagina Inicial</a>
@@ -91,7 +121,7 @@
 				<h2 class="fail-title">Nao deu certo!</h2>
 				<p class="fail-lead">Esses foram os problemas encontrados:</p>
 				<ul class="fail-list">
-					<li>Voce nao cumpriu todos os objetivos.</li>
+					<li>Tom nao cumpriu todos os objetivos.</li>
 				</ul>
 				<div class="fail-actions">
 					<button class="btn-fail-ok" id="failPanelOk" type="button">Ok</button>

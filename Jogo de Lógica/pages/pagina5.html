@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Licao 5 - Funcao pegar()</title>
+	<title>Licao 6 - Pacotes coloridos</title>
 	<link rel="stylesheet" href="../assets/css/app.css">
 </head>
 <body class="lesson-page">
@@ -13,44 +13,41 @@
 		</div>
 	</header>
 	<main class="game-shell">
-		<h1 class="title">Licao 5: carregar caixa com pegar()</h1>
+		<h1 class="title">Licao 6: pacotes coloridos e bases especificas</h1>
 
 		<section id="tutorialPanel" class="tutorial-panel">
 			<p class="tutorial-tag">Tutorial antes da pratica</p>
-			<h2>Novas funcoes: pegar() e largar()</h2>
+			<h2>Como entregar pacotes coloridos</h2>
 			<p>
-				Nesta licao, voce precisa encostar na caixa, usar pegar(), levar ate o alvo e usar largar() em cima do destino.
+				Nesta licao, cada pacote precisa ser levado para a base da mesma cor.
+				Use pegar() para carregar um pacote, mova ate a base correta e use largar() em cima dela.
 			</p>
 			<div class="tutorial-box">
 				<p>Fluxo recomendado:</p>
 				<ul>
-					<li>1. Mover ate a caixa</li>
-					<li>2. Executar pegar()</li>
-					<li>3. Levar a caixa para o destino</li>
-					<li>4. Executar largar() em cima do alvo</li>
+					<li>1. Pegue um pacote colorido</li>
+					<li>2. Leve ate a base da mesma cor</li>
+					<li>3. Use largar() em cima da base correta</li>
+					<li>4. Repita ate entregar todos os pacotes</li>
 				</ul>
 			</div>
-
-			<div class="tutorial-video-wrap">
-				<p class="tutorial-video-title">Video demonstrativo</p>
-				<video id="demoVideo" class="tutorial-video" controls muted loop playsinline></video>
-				<p id="demoVideoNote" class="tutorial-video-note">Gerando demonstracao...</p>
-			</div>
-
 			<button id="startPracticeBtn" class="btn-start-practice" type="button">Ir para a pratica</button>
 		</section>
 
 		<section id="practicePanel" class="layout hidden">
 			<article class="panel">
 				<h2>Comandos do jogador</h2>
-				<p class="hint">Use pegar() para carregar a caixa e largar() sobre o alvo laranja.</p>
+				<p class="hint">Entregue todos os pacotes nas bases da mesma cor usando pegar() e largar().</p>
 
 				<textarea id="cmdInput" spellcheck="false">moverDireita(2)
-moverCima
 pegar()
 moverBaixo(2)
-moverDireita(4)
+moverDireita(3)
+largar()
+moverEsquerda(3)
 moverCima(2)
+pegar()
+moverDireita(5)
 largar()</textarea>
 
 				<div class="buttons">
@@ -59,7 +56,7 @@ largar()</textarea>
 				</div>
 				<button class="btn-docs" id="docsBtn" type="button">Docs</button>
 
-				<p id="status" class="status">Objetivo: pegar a caixa e largar em cima do destino.</p>
+				<p id="status" class="status">Objetivo: entregar todos os pacotes nas bases corretas.</p>
 
 				<div id="errorPanel" class="error-panel hidden" role="alert" aria-live="assertive">
 					<p class="error-panel-title">Comando invalido</p>
@@ -84,17 +81,13 @@ largar()</textarea>
 
 			<article class="panel arena-wrap">
 				<h2>Area do desafio</h2>
-				<p class="arena-info">A caixa marrom deve terminar dentro da area laranja.</p>
+				<p class="arena-info">Cada cor tem sua base especifica.</p>
 
 				<div class="arena" id="arena">
 					<div class="board" id="board">
 						<div class="arena-grid" id="arenaGrid"></div>
-						<div class="entity-cell" id="targetCell" aria-hidden="true">
-							<div class="target"></div>
-						</div>
-						<div class="entity-cell" id="boxCell" aria-label="Caixa">
-							<div class="box"></div>
-						</div>
+						<div class="base-layer" id="baseLayer" aria-hidden="true"></div>
+						<div class="package-layer" id="packageLayer" aria-hidden="true"></div>
 						<div class="entity-cell" id="botCell" aria-label="Boneco">
 							<div class="bot"></div>
 						</div>
@@ -103,11 +96,11 @@ largar()</textarea>
 			</article>
 		</section>
 
-		<div id="winPanel" class="win-panel hidden" role="dialog" aria-live="assertive" aria-label="Licao 5 concluida">
+		<div id="winPanel" class="win-panel hidden" role="dialog" aria-live="assertive" aria-label="Licao 6 concluida">
 			<div class="win-card">
-				<p class="win-eyebrow">Licao 5</p>
+				<p class="win-eyebrow">Licao 6</p>
 				<h2 class="win-title">Fase concluida!</h2>
-				<p id="winSummary" class="win-summary">Voce usou pegar() e largar() corretamente.</p>
+				<p id="winSummary" class="win-summary">Voce entregou todos os pacotes corretamente.</p>
 
 				<div class="win-actions">
 					<a class="btn-win" href="../index.html">Pagina Inicial</a>

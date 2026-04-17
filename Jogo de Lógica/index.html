@@ -11,207 +11,279 @@
 </head>
 
 <body class="home-page">
-  <!-- Header Gamer -->
+  <!-- Header -->
   <header class="gamer-header">
     <nav class="navbar navbar-dark">
       <div class="container-fluid">
         <div class="navbar-brand brand-gamer">
-          <i class="fas fa-code"></i>
+          <i class="fas fa-terminal"></i>
           <span class="brand-text">SENAC Code Challenge</span>
-          <span class="brand-icon">⚡</span>
+          <span class="brand-icon"><i class="fas fa-bolt"></i></span>
+        </div>
+        <div class="header-stats">
+          <div class="header-stat">
+            <i class="fas fa-heart"></i>
+            <span>3</span>
+          </div>
+          <div class="header-stat">
+            <i class="fas fa-star"></i>
+            <span>0 / 24</span>
+          </div>
         </div>
       </div>
     </nav>
   </header>
 
+  <!-- Hero -->
+  <section class="hero-section">
+    <div class="hero-inner">
+      <div class="hero-badge"><i class="fas fa-shield-alt"></i> Jogo Educacional CSS</div>
+      <h1>Selecione <span class="hero-highlight">sua Fase</span></h1>
+      <p>Conquiste estrelas, desbloqueie fases e domine CSS como um verdadeiro dev</p>
+    </div>
+    <!-- Stats bar -->
+    <div class="stats-bar">
+      <div class="stat-item">
+        <div class="stat-icon"><i class="fas fa-book-open"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Fases</span>
+          <span class="stat-value">0 / 8</span>
+        </div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-icon"><i class="fas fa-clock"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Tempo</span>
+          <span class="stat-value">0m</span>
+        </div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-icon"><i class="fas fa-fire"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Progresso</span>
+          <span class="stat-value">0%</span>
+        </div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-icon"><i class="fas fa-trophy"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Conquistas</span>
+          <span class="stat-value">0</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Main Content -->
   <main class="intro-container">
     <div class="container-fluid">
 
-      <!-- Timeline/Tree of Lessons -->
-      <section class="lessons-timeline">
-        <div class="timeline-container">
-          <!-- Lesson Item - Current -->
-          <div class="timeline-item current">
-            <div class="timeline-marker current">
-              <i class="fas fa-play"></i>
-            </div>
-            <div class="timeline-content lesson-card active">
-              <div class="lesson-header">
-                <span class="lesson-badge">LIÇÃO 1</span>
-                <span class="difficulty-badge easy">Muito Fácil</span>
-              </div>
-              <h3 class="lesson-title">Introdução ao CSS</h3>
-              <p class="lesson-description">Aprenda os conceitos básicos de CSS e como estilizar elementos HTML</p>
-              <div class="lesson-progress">
-                <div class="progress-bar" style="width: 0%;"></div>
-              </div>
-              <a class="btn-lesson-start" href="pages/pagina1.html">
-                <i class="fas fa-play"></i> Iniciar Lição
-              </a>
-            </div>
-          </div>
+      <!-- Level Select Grid -->
+      <section class="level-grid">
 
-          <!-- Lesson Item -->
-          <div class="timeline-item locked">
-            <div class="timeline-marker locked">
-              <i class="fas fa-lock"></i>
-            </div>
-            <div class="timeline-content lesson-card">
-              <div class="lesson-header">
-                <span class="lesson-badge">LIÇÃO 2</span>
-                <span class="difficulty-badge easy">Muito Fácil</span>
-              </div>
-              <h3 class="lesson-title">Seletores CSS</h3>
-              <p class="lesson-description">Domine os diferentes tipos de seletores CSS para estilizar elementos com precisão</p>
-              <div class="lesson-progress">
-                <div class="progress-bar" style="width: 0%;"></div>
-              </div>
-              <p class="lesson-status"><i class="fas fa-lock"></i> Bloqueado - Complete a Lição 1</p>
-            </div>
+        <!-- Level 1 - Current -->
+        <div class="level-card level-current" data-level="1">
+          <div class="level-card-glow"></div>
+          <div class="level-number">
+            <span>1</span>
           </div>
-
-          <!-- Lesson Item -->
-          <div class="timeline-item locked">
-            <div class="timeline-marker locked">
-              <i class="fas fa-lock"></i>
-            </div>
-            <div class="timeline-content lesson-card">
-              <div class="lesson-header">
-                <span class="lesson-badge">LIÇÃO 3</span>
-                <span class="difficulty-badge easy">Fácil</span>
-              </div>
-              <h3 class="lesson-title">Modelos de Box e Espaçamentos</h3>
-              <p class="lesson-description">Understand margin, padding, border e como eles afetam o layout</p>
-              <div class="lesson-progress">
-                <div class="progress-bar" style="width: 0%;"></div>
-              </div>
-              <p class="lesson-status"><i class="fas fa-lock"></i> Bloqueado - Complete a Lição 2</p>
-            </div>
+          <div class="level-icon-wrap">
+            <i class="fas fa-palette"></i>
           </div>
-
-          <!-- Lesson Item -->
-          <div class="timeline-item locked">
-            <div class="timeline-marker locked">
-              <i class="fas fa-lock"></i>
-            </div>
-            <div class="timeline-content lesson-card">
-              <div class="lesson-header">
-                <span class="lesson-badge">LIÇÃO 4</span>
-                <span class="difficulty-badge medium">Médio</span>
-              </div>
-              <h3 class="lesson-title">Flexbox - O Poder do Layout Flexível</h3>
-              <p class="lesson-description">Domine Flexbox e crie layouts responsivos e modernos com facilidade</p>
-              <div class="lesson-progress">
-                <div class="progress-bar" style="width: 0%;"></div>
-              </div>
-              <p class="lesson-status"><i class="fas fa-lock"></i> Bloqueado - Complete a Lição 3</p>
-            </div>
+          <div class="level-info">
+            <div class="level-difficulty easy"><i class="fas fa-signal"></i> Muito Fácil</div>
+            <h3 class="level-title">Introdução ao CSS</h3>
+            <p class="level-desc">Aprenda os conceitos básicos de CSS e como estilizar elementos HTML</p>
           </div>
-
-          <!-- Lesson Item -->
-          <div class="timeline-item locked">
-            <div class="timeline-marker locked">
-              <i class="fas fa-lock"></i>
-            </div>
-            <div class="timeline-content lesson-card">
-              <div class="lesson-header">
-                <span class="lesson-badge">LIÇÃO 5</span>
-                <span class="difficulty-badge medium">Médio</span>
-              </div>
-              <h3 class="lesson-title">Grid CSS - Layouts Avançados</h3>
-              <p class="lesson-description">Aprenda a usar CSS Grid para criar layouts complexos e poderosos</p>
-              <div class="lesson-progress">
-                <div class="progress-bar" style="width: 0%;"></div>
-              </div>
-              <p class="lesson-status"><i class="fas fa-lock"></i> Bloqueado - Complete a Lição 4</p>
-            </div>
+          <div class="level-stars">
+            <i class="far fa-star"></i>
+            <i class="far fa-star"></i>
+            <i class="far fa-star"></i>
           </div>
+          <a class="level-btn" href="pages/pagina1.html">
+            <i class="fas fa-play"></i> Jogar
+          </a>
+        </div>
 
-          <!-- Lesson Item -->
-          <div class="timeline-item locked">
-            <div class="timeline-marker locked">
-              <i class="fas fa-lock"></i>
-            </div>
-            <div class="timeline-content lesson-card">
-              <div class="lesson-header">
-                <span class="lesson-badge">LIÇÃO 6</span>
-                <span class="difficulty-badge hard">Difícil</span>
-              </div>
-              <h3 class="lesson-title">Animações e Transições</h3>
-              <p class="lesson-description">Crie animações suaves e transições impressionantes com CSS</p>
-              <div class="lesson-progress">
-                <div class="progress-bar" style="width: 0%;"></div>
-              </div>
-              <p class="lesson-status"><i class="fas fa-lock"></i> Bloqueado - Complete a Lição 5</p>
-            </div>
+        <!-- Level 2 - Locked -->
+        <div class="level-card level-locked" data-level="2">
+          <div class="level-number">
+            <span>2</span>
           </div>
-
-          <!-- Lesson Item -->
-          <div class="timeline-item locked">
-            <div class="timeline-marker locked">
-              <i class="fas fa-lock"></i>
-            </div>
-            <div class="timeline-content lesson-card">
-              <div class="lesson-header">
-                <span class="lesson-badge">LIÇÃO 7</span>
-                <span class="difficulty-badge hard">Difícil</span>
-              </div>
-              <h3 class="lesson-title">Transformações 3D</h3>
-              <p class="lesson-description">Crie efeitos 3D impressionantes usando CSS Transforms</p>
-              <div class="lesson-progress">
-                <div class="progress-bar" style="width: 0%;"></div>
-              </div>
-              <p class="lesson-status"><i class="fas fa-lock"></i> Bloqueado - Complete a Lição 6</p>
-            </div>
+          <div class="level-icon-wrap">
+            <i class="fas fa-crosshairs"></i>
           </div>
-
-          <!-- Lesson Item -->
-          <div class="timeline-item locked">
-            <div class="timeline-marker locked">
-              <i class="fas fa-lock"></i>
-            </div>
-            <div class="timeline-content lesson-card">
-              <div class="lesson-header">
-                <span class="lesson-badge">LIÇÃO 8</span>
-                <span class="difficulty-badge expert">Expertise</span>
-              </div>
-              <h3 class="lesson-title">Projeto Final - Website Completo</h3>
-              <p class="lesson-description">Combine todos os conhecimentos e crie um website responsivo completo</p>
-              <div class="lesson-progress">
-                <div class="progress-bar" style="width: 0%;"></div>
-              </div>
-              <p class="lesson-status"><i class="fas fa-lock"></i> Bloqueado - Complete todas as lições</p>
-            </div>
+          <div class="level-info">
+            <div class="level-difficulty easy"><i class="fas fa-signal"></i> Muito Fácil</div>
+            <h3 class="level-title">Seletores CSS</h3>
+            <p class="level-desc">Domine os diferentes tipos de seletores CSS para estilizar elementos</p>
+          </div>
+          <div class="level-stars">
+            <i class="far fa-star"></i>
+            <i class="far fa-star"></i>
+            <i class="far fa-star"></i>
+          </div>
+          <div class="level-lock-overlay">
+            <i class="fas fa-lock"></i>
+            <span>Complete a Fase 1</span>
           </div>
         </div>
-      </section>
 
-      <!-- Progress Summary -->
-      <section class="progress-summary">
-        <div class="summary-cards">
-          <div class="summary-card">
-            <div class="summary-icon">📚</div>
-            <h4>Lições Completadas</h4>
-            <p class="summary-value">0 de 8</p>
+        <!-- Level 3 - Locked -->
+        <div class="level-card level-locked" data-level="3">
+          <div class="level-number">
+            <span>3</span>
           </div>
-          <div class="summary-card">
-            <div class="summary-icon">⏱️</div>
-            <h4>Tempo Investido</h4>
-            <p class="summary-value">0m</p>
+          <div class="level-icon-wrap">
+            <i class="fas fa-box"></i>
           </div>
-          <div class="summary-card">
-            <div class="summary-icon">📈</div>
-            <h4>Taxa de Progresso</h4>
-            <p class="summary-value">0%</p>
+          <div class="level-info">
+            <div class="level-difficulty easy"><i class="fas fa-signal"></i> Fácil</div>
+            <h3 class="level-title">Box Model</h3>
+            <p class="level-desc">Entenda margin, padding, border e como afetam o layout</p>
           </div>
-          <div class="summary-card">
-            <div class="summary-icon">🏆</div>
-            <h4>Conquistas</h4>
-            <p class="summary-value">0 ✓</p>
+          <div class="level-stars">
+            <i class="far fa-star"></i>
+            <i class="far fa-star"></i>
+            <i class="far fa-star"></i>
+          </div>
+          <div class="level-lock-overlay">
+            <i class="fas fa-lock"></i>
+            <span>Complete a Fase 2</span>
           </div>
         </div>
+
+        <!-- Level 4 - Locked -->
+        <div class="level-card level-locked" data-level="4">
+          <div class="level-number">
+            <span>4</span>
+          </div>
+          <div class="level-icon-wrap">
+            <i class="fas fa-arrows-alt"></i>
+          </div>
+          <div class="level-info">
+            <div class="level-difficulty medium"><i class="fas fa-signal"></i> Médio</div>
+            <h3 class="level-title">Flexbox</h3>
+            <p class="level-desc">Domine Flexbox e crie layouts responsivos e modernos</p>
+          </div>
+          <div class="level-stars">
+            <i class="far fa-star"></i>
+            <i class="far fa-star"></i>
+            <i class="far fa-star"></i>
+          </div>
+          <div class="level-lock-overlay">
+            <i class="fas fa-lock"></i>
+            <span>Complete a Fase 3</span>
+          </div>
+        </div>
+
+        <!-- Level 5 - Locked -->
+        <div class="level-card level-locked" data-level="5">
+          <div class="level-number">
+            <span>5</span>
+          </div>
+          <div class="level-icon-wrap">
+            <i class="fas fa-th"></i>
+          </div>
+          <div class="level-info">
+            <div class="level-difficulty medium"><i class="fas fa-signal"></i> Médio</div>
+            <h3 class="level-title">Grid CSS</h3>
+            <p class="level-desc">Aprenda CSS Grid para criar layouts complexos e poderosos</p>
+          </div>
+          <div class="level-stars">
+            <i class="far fa-star"></i>
+            <i class="far fa-star"></i>
+            <i class="far fa-star"></i>
+          </div>
+          <div class="level-lock-overlay">
+            <i class="fas fa-lock"></i>
+            <span>Complete a Fase 4</span>
+          </div>
+        </div>
+
+        <!-- Level 6 - Locked -->
+        <div class="level-card level-locked" data-level="6">
+          <div class="level-number">
+            <span>6</span>
+          </div>
+          <div class="level-icon-wrap">
+            <i class="fas fa-magic"></i>
+          </div>
+          <div class="level-info">
+            <div class="level-difficulty hard"><i class="fas fa-signal"></i> Difícil</div>
+            <h3 class="level-title">Animações</h3>
+            <p class="level-desc">Crie animações suaves e transições impressionantes com CSS</p>
+          </div>
+          <div class="level-stars">
+            <i class="far fa-star"></i>
+            <i class="far fa-star"></i>
+            <i class="far fa-star"></i>
+          </div>
+          <div class="level-lock-overlay">
+            <i class="fas fa-lock"></i>
+            <span>Complete a Fase 5</span>
+          </div>
+        </div>
+
+        <!-- Level 7 - Locked -->
+        <div class="level-card level-locked" data-level="7">
+          <div class="level-number">
+            <span>7</span>
+          </div>
+          <div class="level-icon-wrap">
+            <i class="fas fa-cube"></i>
+          </div>
+          <div class="level-info">
+            <div class="level-difficulty hard"><i class="fas fa-signal"></i> Difícil</div>
+            <h3 class="level-title">Transformações 3D</h3>
+            <p class="level-desc">Crie efeitos 3D impressionantes usando CSS Transforms</p>
+          </div>
+          <div class="level-stars">
+            <i class="far fa-star"></i>
+            <i class="far fa-star"></i>
+            <i class="far fa-star"></i>
+          </div>
+          <div class="level-lock-overlay">
+            <i class="fas fa-lock"></i>
+            <span>Complete a Fase 6</span>
+          </div>
+        </div>
+
+        <!-- Level 8 - Locked (Boss) -->
+        <div class="level-card level-locked level-boss" data-level="8">
+          <div class="level-number">
+            <i class="fas fa-crown"></i>
+          </div>
+          <div class="level-icon-wrap">
+            <i class="fas fa-laptop-code"></i>
+          </div>
+          <div class="level-info">
+            <div class="level-difficulty expert"><i class="fas fa-signal"></i> Expertise</div>
+            <h3 class="level-title">Projeto Final</h3>
+            <p class="level-desc">Combine tudo e crie um website responsivo completo</p>
+          </div>
+          <div class="level-stars">
+            <i class="far fa-star"></i>
+            <i class="far fa-star"></i>
+            <i class="far fa-star"></i>
+          </div>
+          <div class="level-lock-overlay">
+            <i class="fas fa-lock"></i>
+            <span>Complete todas as fases</span>
+          </div>
+        </div>
+
       </section>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="game-footer">
+    <p><i class="fas fa-code"></i> SENAC Code Challenge &mdash; Aprenda CSS jogando</p>
+  </footer>
     </div>
   </main>
 

@@ -1,12 +1,16 @@
 /* App CSS unico: home + licoes */
 :root {
-  --bg: #eef3ff;
+  --bg: #f0f4fa;
   --panel: #ffffff;
   --line: #d7deea;
   --text: #13223a;
   --muted: #6f7d95;
-  --primary: #2563eb;
-  --primary-2: #0ea5e9;
+  --primary: #005baa;
+  --primary-2: #6b7eb5;
+  --accent-yellow: #f5c518;
+  --accent-orange: #e8871f;
+  --navy: #0f1923;
+  --dark-blue: #002855;
   --ok: #16a34a;
   --danger: #dc2626;
 }
@@ -26,131 +30,476 @@ body {
   display: none !important;
 }
 
-/* Home */
+/* ========== HOME PAGE ========== */
 body.home-page {
-  background: #ffffff;
+  background: var(--primary);
+  background-image:
+    radial-gradient(ellipse at 15% 10%, rgba(0, 91, 170, 0.2) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 90%, rgba(232, 135, 31, 0.1) 0%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h60v60H0z' fill='none'/%3E%3Cpath d='M30 0v60M0 30h60' stroke='%23ffffff' stroke-opacity='0.03' stroke-width='1'/%3E%3C/svg%3E");
+  min-height: 100vh;
 }
 
+/* ---------- Header ---------- */
 .gamer-header {
-  background: linear-gradient(90deg, #2a2a2e 0%, #3a3a3f 50%, #2a2a2e 100%);
-  border-bottom: 3px solid var(--primary);
+  background: rgba(0, 40, 85, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 2px solid var(--accent-yellow);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.gamer-header .container-fluid {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .brand-gamer {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 0.7rem;
   font-weight: 700;
   color: #fff;
+  font-size: 1.1rem;
 }
 
-.brand-icon,
-.brand-gamer i {
-  color: #7dd3fc;
+.brand-text {
+  background: linear-gradient(90deg, #fff, var(--accent-yellow));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.btn-menu {
-  background: transparent;
-  border: 1px solid #7dd3fc;
-  color: #7dd3fc;
-  border-radius: 8px;
-  padding: 0.45rem 0.8rem;
+.brand-icon { color: var(--accent-yellow); }
+.brand-gamer > i { color: var(--accent-orange); font-size: 1.2rem; }
+
+.header-stats {
+  display: flex;
+  gap: 1rem;
 }
 
-.intro-container {
-  padding: 1.25rem 0;
+.header-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: rgba(255,255,255,0.7);
+  font-weight: 700;
+  font-size: 0.88rem;
 }
 
-.timeline-container {
-  max-width: 980px;
+.header-stat .fa-heart { color: #ef4444; }
+.header-stat .fa-star { color: var(--accent-yellow); }
+
+/* ---------- Hero ---------- */
+.hero-section {
+  max-width: 1100px;
   margin: 0 auto;
+  padding: 2.5rem 1.5rem 0;
+  text-align: center;
 }
 
-.timeline-item {
+.hero-inner {
+  margin-bottom: 1.8rem;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(245, 197, 24, 0.12);
+  border: 1px solid rgba(245, 197, 24, 0.25);
+  color: var(--accent-yellow);
+  padding: 0.3rem 1rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
   margin-bottom: 1rem;
 }
 
-.lesson-card {
-  background: #fff;
-  border: 1px solid #dbe4f4;
-  border-radius: 14px;
-  padding: 1rem;
+.hero-section h1 {
+  color: #fff;
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem;
 }
 
-.timeline-item.current .lesson-card {
-  border-color: #93c5fd;
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.14);
+.hero-highlight {
+  color: var(--accent-yellow);
 }
 
-.timeline-item.locked .lesson-card {
-  opacity: 0.78;
-}
-
-.lesson-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.lesson-badge {
-  font-weight: 700;
-  color: #1e3a8a;
-}
-
-.difficulty-badge {
-  border-radius: 999px;
-  padding: 0.15rem 0.55rem;
-  font-size: 0.75rem;
-  border: 1px solid #cbd5e1;
-}
-
-.lesson-title {
-  font-size: 1.1rem;
-  margin: 0.5rem 0;
-}
-
-.lesson-description,
-.lesson-status {
-  color: #475569;
+.hero-section > .hero-inner > p {
+  color: var(--primary-2);
+  font-size: 1rem;
   margin: 0;
 }
 
-.lesson-progress {
-  margin: 0.7rem 0;
-  background: #e5e7eb;
+/* ---------- Stats Bar ---------- */
+.stats-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(107,126,181,0.15);
+  border-radius: 14px;
+  padding: 0.65rem 1.5rem;
+  backdrop-filter: blur(8px);
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0 1rem;
+}
+
+.stat-icon {
+  width: 36px;
+  height: 36px;
   border-radius: 10px;
-  overflow: hidden;
-}
-
-.progress-bar {
-  height: 8px;
-  background: linear-gradient(90deg, var(--primary), var(--primary-2));
-}
-
-.btn-lesson-start {
-  display: inline-block;
-  text-decoration: none;
-  color: #fff;
-  background: linear-gradient(90deg, var(--primary), var(--primary-2));
-  border-radius: 10px;
-  padding: 0.45rem 0.8rem;
-  margin-top: 0.4rem;
-}
-
-.summary-cards {
-  max-width: 980px;
-  margin: 1rem auto 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 0.8rem;
+  place-items: center;
+  font-size: 0.95rem;
 }
 
-.summary-card {
-  border: 1px solid #dbe4f4;
-  border-radius: 12px;
-  padding: 0.9rem;
+.stat-item:nth-child(1) .stat-icon { background: rgba(0,91,170,0.2); color: #60a5fa; }
+.stat-item:nth-child(3) .stat-icon { background: rgba(245,197,24,0.15); color: var(--accent-yellow); }
+.stat-item:nth-child(5) .stat-icon { background: rgba(232,135,31,0.15); color: var(--accent-orange); }
+.stat-item:nth-child(7) .stat-icon { background: rgba(22,163,74,0.15); color: #4ade80; }
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  font-size: 0.68rem;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.stat-value {
+  color: #fff;
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255,255,255,0.1);
+}
+
+/* ---------- Intro Container ---------- */
+.intro-container {
+  padding: 2rem 0 3rem;
+}
+
+/* ---------- Level Select Grid ---------- */
+.level-grid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.2rem;
+  padding: 0 1rem;
+}
+
+/* ---------- Level Card ---------- */
+.level-card {
+  position: relative;
+  background: linear-gradient(165deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%);
+  border: 1px solid rgba(107,126,181,0.18);
+  border-radius: 18px;
+  padding: 1.4rem 1.2rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
+  overflow: hidden;
+  transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+}
+
+/* Number badge */
+.level-number {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.5);
+}
+
+/* Icon circle */
+.level-icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 1.6rem;
+  margin-bottom: 0.8rem;
+  margin-top: 0.5rem;
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+/* Info */
+.level-info { flex: 1; }
+
+.level-difficulty {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.15rem 0.6rem;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+
+.level-difficulty.easy { background: rgba(22,163,74,0.12); color: #4ade80; }
+.level-difficulty.medium { background: rgba(245,197,24,0.12); color: var(--accent-yellow); }
+.level-difficulty.hard { background: rgba(232,135,31,0.12); color: var(--accent-orange); }
+.level-difficulty.expert { background: rgba(220,38,38,0.12); color: #f87171; }
+
+.level-title {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 0.3rem;
+}
+
+.level-desc {
+  color: rgba(255,255,255,0.45);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin: 0 0 0.6rem;
+}
+
+/* Stars */
+.level-stars {
+  display: flex;
+  gap: 0.3rem;
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.15);
+  margin-bottom: 0.8rem;
+}
+
+.level-stars .fas.fa-star { color: var(--accent-yellow); }
+
+/* Lock overlay */
+.level-lock-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 25, 35, 0.75);
+  backdrop-filter: blur(3px);
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.level-lock-overlay i {
+  font-size: 1.6rem;
+  color: rgba(255,255,255,0.25);
+}
+
+.level-lock-overlay span {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.35);
+  font-weight: 600;
+}
+
+/* --- States --- */
+
+/* Current / Playable */
+.level-current {
+  border-color: var(--accent-yellow);
+  background: linear-gradient(165deg, rgba(245,197,24,0.08) 0%, rgba(0,91,170,0.08) 100%);
+}
+
+.level-current .level-card-glow {
+  position: absolute;
+  inset: -1px;
+  border-radius: 18px;
+  background: conic-gradient(from 0deg, var(--accent-yellow), var(--accent-orange), var(--primary), var(--accent-yellow));
+  opacity: 0.15;
+  z-index: -1;
+  animation: glowRotate 4s linear infinite;
+}
+
+@keyframes glowRotate {
+  to { filter: hue-rotate(15deg); opacity: 0.2; }
+  50% { opacity: 0.25; }
+}
+
+.level-current .level-number {
+  background: var(--accent-yellow);
+  border-color: var(--accent-yellow);
+  color: var(--navy);
+}
+
+.level-current .level-icon-wrap {
+  background: linear-gradient(135deg, rgba(245,197,24,0.18), rgba(232,135,31,0.12));
+  border: 2px solid rgba(245,197,24,0.35);
+  color: var(--accent-yellow);
+  box-shadow: 0 0 24px rgba(245,197,24,0.15);
+}
+
+.level-current:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 48px rgba(245,197,24,0.12), 0 0 0 1px rgba(245,197,24,0.4);
+}
+
+.level-current:hover .level-icon-wrap {
+  transform: scale(1.08);
+  box-shadow: 0 0 32px rgba(245,197,24,0.25);
+}
+
+/* Locked */
+.level-locked {
+  cursor: default;
+}
+
+.level-locked .level-icon-wrap {
+  background: rgba(107,126,181,0.08);
+  border: 2px solid rgba(107,126,181,0.12);
+  color: rgba(255,255,255,0.2);
+}
+
+/* Completed (JS adds this) */
+.level-completed {
+  border-color: rgba(22,163,74,0.3);
+}
+
+.level-completed .level-number {
+  background: var(--ok);
+  border-color: var(--ok);
+  color: #fff;
+}
+
+.level-completed .level-icon-wrap {
+  background: rgba(22,163,74,0.12);
+  border: 2px solid rgba(22,163,74,0.3);
+  color: #4ade80;
+}
+
+.level-completed:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 36px rgba(22,163,74,0.1);
+}
+
+/* Boss card */
+.level-boss .level-number {
+  font-size: 0.9rem;
+}
+
+.level-boss.level-current .level-icon-wrap {
+  background: linear-gradient(135deg, rgba(220,38,38,0.15), rgba(232,135,31,0.1));
+  border-color: rgba(220,38,38,0.3);
+  color: #f87171;
+  box-shadow: 0 0 24px rgba(220,38,38,0.1);
+}
+
+/* Play button */
+.level-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  width: 100%;
+  padding: 0.6rem 0;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  color: var(--navy);
+  background: linear-gradient(135deg, var(--accent-yellow), var(--accent-orange));
+  box-shadow: 0 4px 16px rgba(245,197,24,0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.level-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(245,197,24,0.45);
+  color: var(--navy);
+}
+
+/* ---------- Footer ---------- */
+.game-footer {
+  text-align: center;
+  padding: 1.5rem;
+  color: rgba(255,255,255,0.2);
+  font-size: 0.8rem;
+}
+
+.game-footer i {
+  color: var(--accent-orange);
+  margin-right: 0.3rem;
+}
+
+/* ---------- Responsivo ---------- */
+@media (max-width: 1000px) {
+  .level-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-section h1 { font-size: 1.6rem; }
+
+  .stats-bar {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1rem;
+  }
+
+  .stat-divider { display: none; }
+
+  .stat-item { padding: 0.4rem 0.6rem; }
+
+  .level-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.9rem;
+  }
+
+  .level-icon-wrap {
+    width: 58px;
+    height: 58px;
+    font-size: 1.3rem;
+  }
+
+  .level-title { font-size: 0.9rem; }
+  .level-desc { font-size: 0.75rem; }
+
+  .header-stats { display: none; }
+}
+
+@media (max-width: 440px) {
+  .level-grid {
+    grid-template-columns: 1fr;
+    max-width: 320px;
+  }
 }
 
 /* Licoes */
@@ -162,8 +511,8 @@ body.lesson-page {
 
 body.lesson-page .game-topbar {
   margin: 0 -24px 16px;
-  background: linear-gradient(90deg, #1e293b 0%, #334155 50%, #1e293b 100%);
-  border-bottom: 3px solid var(--primary);
+  background: linear-gradient(90deg, var(--dark-blue) 0%, var(--navy) 50%, var(--dark-blue) 100%);
+  border-bottom: 3px solid var(--accent-yellow);
   box-shadow: 0 2px 15px rgba(30, 41, 59, 0.3);
 }
 

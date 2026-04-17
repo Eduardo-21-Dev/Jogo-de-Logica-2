@@ -1,28 +1,43 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Licao CSS - Comandos</title>
 	<link rel="stylesheet" href="../assets/css/app.css">
 </head>
+
 <body class="lesson-page">
 	<header class="game-topbar">
 		<div class="game-topbar-inner">
-			<a class="game-topbar-logo" href="../index.html">CSS MASTER</a>
+			<a class="game-topbar-logo" href="../index.html">SENAC Code Challenge</a>
 		</div>
 	</header>
 	<main class="game-shell">
-		<h1 class="title">Licao Interativa: comandos para mover o boneco</h1>
+		<h1 class="title">Lição Interativa: comandos para mover o boneco</h1>
+
+				<section id="tutorialPanel" class="tutorial-panel">
+			<p class="tutorial-tag">Tutorial antes da pratica</p>
+			<h2>Como usar quantidade nas funcoes</h2>
+			<p>
+				A funcao recebe um parametro entre parenteses para repetir o movimento varias vezes.
+			</p>
+			<div class="tutorial-box">
+				<p>Exemplos:</p>
+				<ul>
+					<li>moverDireita(3) = anda 3 casas para a direita</li>
+					<li>moverCima(2) = sobe 2 casas</li>
+					<li>moverEsquerda(1) = anda 1 casa para a esquerda</li>
+				</ul>
+			</div>
+			<p class="tutorial-note">Na pratica desta licao, voce precisa usar pelo menos um comando com parametro.</p>
+		</section>
 
 		<section class="layout">
 			<article class="panel">
-				<h2>Comandos do jogador (esquerda)</h2>
-
-				<textarea id="cmdInput" spellcheck="false">moverDireita
-moverDireita
-moverDireita</textarea>
-
+				<h2>Comandos do jogador</h2>
+				<textarea id="cmdInput" spellcheck="false"></textarea>
 				<div class="buttons">
 					<button class="btn-run" id="runBtn" type="button">Executar</button>
 					<button class="btn-reset" id="resetBtn" type="button">Resetar</button>
@@ -37,7 +52,8 @@ moverDireita</textarea>
 					<button class="error-panel-close" id="errorPanelClose" type="button">Fechar painel</button>
 				</div>
 
-				<div id="docsPanel" class="docs-panel hidden" role="dialog" aria-live="polite" aria-label="Documentacao de funcoes">
+				<div id="docsPanel" class="docs-panel hidden" role="dialog" aria-live="polite"
+					aria-label="Documentacao de funcoes">
 					<p class="docs-panel-title">Funcoes existentes</p>
 					<ul class="docs-panel-list">
 						<li>moverDireita</li>
@@ -50,9 +66,6 @@ moverDireita</textarea>
 			</article>
 
 			<article class="panel arena-wrap">
-				<h2>Area do jogo (direita)</h2>
-				<p class="arena-info">O boneco segue os comandos digitados no painel da esquerda.</p>
-
 				<div class="arena" id="arena">
 					<div class="board" id="board">
 						<div class="arena-grid" id="arenaGrid"></div>
@@ -86,7 +99,8 @@ moverDireita</textarea>
 			</div>
 		</div>
 
-		<div id="failPanel" class="fail-panel hidden" role="dialog" aria-live="assertive" aria-label="Falha na tentativa">
+		<div id="failPanel" class="fail-panel hidden" role="dialog" aria-live="assertive"
+			aria-label="Falha na tentativa">
 			<div class="fail-card">
 				<h2 class="fail-title">Nao deu certo!</h2>
 				<p class="fail-lead">Esses foram os problemas encontrados:</p>
@@ -102,4 +116,5 @@ moverDireita</textarea>
 
 	<script src="../assets/backend/app.js"></script>
 </body>
+
 </html>

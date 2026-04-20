@@ -2,7 +2,7 @@
   const path = window.location.pathname.toLowerCase();
 	const PROGRESS_STORAGE_KEY = 'css-master-progress-v1';
 	const HARD_RESET_FLAG_KEY = 'css-master-hard-reset';
-	const TOTAL_LESSONS = 8;
+	const TOTAL_LESSONS = 6;
 	const LAST_PLAYABLE_LESSON = 5;
 
 	// Nota: Aplica reset de progresso quando o usuario usa Ctrl+F5.
@@ -339,137 +339,98 @@
 			function renderHomeProgress() {
 				const progress = loadProgressState();
 				const completedSet = new Set(progress.completedLessons);
-				const timelineItems = Array.from(document.querySelectorAll('.timeline-item'));
+				const levelCards = Array.from(document.querySelectorAll('.level-card[data-level]'));
 
-				timelineItems.forEach(function (item, index) {
-					const lessonId = index + 1;
-					const pageNumber = getPageNumberForLesson(lessonId);
-					const marker = item.querySelector('.timeline-marker');
-					const markerIcon = marker ? marker.querySelector('i') : null;
-					const lessonCard = item.querySelector('.lesson-card');
-					const progressBar = lessonCard ? lessonCard.querySelector('.progress-bar') : null;
-					let status = lessonCard ? lessonCard.querySelector('.lesson-status') : null;
-					let startButton = lessonCard ? lessonCard.querySelector('.btn-lesson-start') : null;
+				if (levelCards.length) {
+					levelCards
+						.sort(function (cardA, cardB) {
+							return Number(cardA.dataset.level) - Number(cardB.dataset.level);
+						})
+						.forEach(function (card) {
+							const levelId = Number(card.dataset.level);
+							const pageNumber = getPageNumberForLesson(levelId);
+							const hasPlayablePage = pageNumber !== null;
+							const isCompleted = completedSet.has(levelId);
+							const isUnlocked = levelId === 1 || isCompleted || completedSet.has(levelId - 1);
 
-					const isCompleted = completedSet.has(lessonId);
-					const unlockedByProgress = lessonId === 1 || completedSet.has(lessonId - 1);
-					const isUnlocked = unlockedByProgress || isCompleted;
-					const hasPlayablePage = pageNumber !== null;
+							let startButton = card.querySelector('.level-btn');
+							const starsRow = card.querySelector('.level-stars');
+							const lockOverlay = card.querySelector('.level-lock-overlay');
 
-					item.classList.remove('current', 'locked', 'completed');
+							card.classList.remove('level-current', 'level-completed', 'level-locked');
 
-					if (isCompleted) {
-						item.classList.add('completed');
-						if (marker) {
-							marker.classList.remove('locked', 'current');
-						}
-						if (markerIcon) {
-							markerIcon.className = 'fas fa-check';
-						}
-						if (progressBar) {
-							progressBar.style.width = '100%';
-						}
-
-						if (!startButton && lessonCard && hasPlayablePage) {
-							startButton = document.createElement('a');
-							startButton.className = 'btn-lesson-start';
-							lessonCard.appendChild(startButton);
-						}
-						if (startButton && hasPlayablePage) {
-							startButton.href = 'pages/pagina' + pageNumber + '.html';
-							startButton.innerHTML = '<i class="fas fa-redo"></i> Revisar Licao';
-						}
-
-						if (!status && lessonCard) {
-							status = document.createElement('p');
-							status.className = 'lesson-status';
-							lessonCard.appendChild(status);
-						}
-						if (status) {
-							status.innerHTML = '<i class="fas fa-check-circle"></i> Concluida';
-						}
-						return;
-					}
-
-					if (isUnlocked) {
-						item.classList.add('current');
-						if (marker) {
-							marker.classList.remove('locked');
-							marker.classList.add('current');
-						}
-						if (markerIcon) {
-							markerIcon.className = 'fas fa-play';
-						}
-						if (progressBar) {
-							progressBar.style.width = '0%';
-						}
-
-						if (!startButton && lessonCard && hasPlayablePage) {
-							startButton = document.createElement('a');
-							startButton.className = 'btn-lesson-start';
-							lessonCard.appendChild(startButton);
-						}
-						if (startButton) {
-							if (hasPlayablePage) {
-								startButton.href = 'pages/pagina' + pageNumber + '.html';
-								startButton.innerHTML = '<i class="fas fa-play"></i> Iniciar Licao';
-							} else {
-								startButton.remove();
-								startButton = null;
+							if (isCompleted) {
+								card.classList.add('level-completed');
 							}
-						}
 
-						if (!status && lessonCard) {
-							status = document.createElement('p');
-							status.className = 'lesson-status';
-							lessonCard.appendChild(status);
-						}
-						if (status) {
-							status.innerHTML = hasPlayablePage
-								? '<i class="fas fa-unlock"></i> Pronta para jogar'
-								: '<i class="fas fa-flask"></i> Em breve';
-						}
-						return;
-					}
+							if (!isCompleted && isUnlocked) {
+								card.classList.add('level-current');
+							}
 
-					item.classList.add('locked');
-					if (marker) {
-						marker.classList.add('locked');
-						marker.classList.remove('current');
-					}
-					if (markerIcon) {
-						markerIcon.className = 'fas fa-lock';
-					}
-					if (progressBar) {
-						progressBar.style.width = '0%';
-					}
-					if (startButton) {
-						startButton.remove();
-					}
-					if (!status && lessonCard) {
-						status = document.createElement('p');
-						status.className = 'lesson-status';
-						lessonCard.appendChild(status);
-					}
-					if (status) {
-						status.innerHTML = '<i class="fas fa-lock"></i> Bloqueado - Complete a Licao ' + (lessonId - 1);
-					}
-				});
+							if (!isUnlocked) {
+								card.classList.add('level-locked');
+							}
+
+							if (lockOverlay) {
+								lockOverlay.classList.toggle('hidden', isUnlocked);
+								const lockText = lockOverlay.querySelector('span');
+								if (lockText && levelId > 1) {
+									lockText.textContent = 'Complete a Fase ' + (levelId - 1);
+								}
+							}
+
+							if (isUnlocked && hasPlayablePage) {
+								if (!startButton) {
+									startButton = document.createElement('a');
+									startButton.className = 'level-btn';
+									if (lockOverlay) {
+										card.insertBefore(startButton, lockOverlay);
+									} else if (starsRow && starsRow.nextSibling) {
+										card.insertBefore(startButton, starsRow.nextSibling);
+									} else {
+										card.appendChild(startButton);
+									}
+								}
+
+								startButton.href = 'pages/pagina' + pageNumber + '.html';
+								startButton.innerHTML = isCompleted
+									? '<i class="fas fa-redo"></i> Rejogar'
+									: '<i class="fas fa-play"></i> Jogar';
+							} else if (startButton) {
+								startButton.remove();
+							}
+						});
+				}
 
 				const completedCount = progress.completedLessons.length;
+				let unlockedCount = 0;
+				for (let lesson = 1; lesson <= TOTAL_LESSONS; lesson += 1) {
+					if (lesson === 1 || completedSet.has(lesson - 1) || completedSet.has(lesson)) {
+						unlockedCount += 1;
+					}
+				}
+
 				const percentage = Math.floor((completedCount / TOTAL_LESSONS) * 100);
-				const summaryValues = document.querySelectorAll('.summary-value');
-				if (summaryValues[0]) {
-					summaryValues[0].textContent = completedCount + ' de ' + TOTAL_LESSONS;
+				const headerStatValues = document.querySelectorAll('.header-stat span');
+				if (headerStatValues[0]) {
+					headerStatValues[0].textContent = '3';
 				}
-				if (summaryValues[1]) {
-					summaryValues[1].textContent = completedCount * 5 + 'm';
+				if (headerStatValues[1]) {
+					headerStatValues[1].textContent = (completedCount * 3) + ' / ' + (TOTAL_LESSONS * 3);
 				}
-				if (summaryValues[2]) {
-					summaryValues[2].textContent = percentage + '%';
+
+				const statValues = document.querySelectorAll('.stats-bar .stat-value');
+				if (statValues[0]) {
+					statValues[0].textContent = unlockedCount + ' / ' + TOTAL_LESSONS;
 				}
-				if (summaryValues[3]) {
-					summaryValues[3].textContent = completedCount + ' ✓';
+				if (statValues[1]) {
+					statValues[1].textContent = (completedCount * 5) + 'm';
+				}
+				if (statValues[2]) {
+					statValues[2].textContent = percentage + '%';
+				}
+				if (statValues[3]) {
+					statValues[3].textContent = String(completedCount);
 				}
 			}
 
@@ -2768,6 +2729,7 @@
 
     		const baseVisual = document.createElement('div');
     		baseVisual.className = 'base';
+		baseVisual.style.color = base.color;
     		baseCell.appendChild(baseVisual);
     		setEntityPosition(baseCell, base.col, base.row);
     		baseLayer.appendChild(baseCell);
@@ -3124,6 +3086,7 @@
 
     		const baseVisual = document.createElement('div');
     		baseVisual.className = 'base';
+		baseVisual.style.color = base.color;
     		baseCell.appendChild(baseVisual);
     		setEntityPosition(baseCell, base.col, base.row);
     		baseLayer.appendChild(baseCell);

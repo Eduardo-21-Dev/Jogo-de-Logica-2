@@ -32,17 +32,17 @@ body {
 
 /* ========== HOME PAGE ========== */
 body.home-page {
-  background: var(--primary);
+  background : var(--primary);
   background-image:
-    radial-gradient(ellipse at 15% 10%, rgba(0, 91, 170, 0.2) 0%, transparent 55%),
-    radial-gradient(ellipse at 85% 90%, rgba(232, 135, 31, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 15% 10%, rgb(14, 126, 231) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 90%, rgb(8, 111, 255) 0%, transparent 50%),
     url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h60v60H0z' fill='none'/%3E%3Cpath d='M30 0v60M0 30h60' stroke='%23ffffff' stroke-opacity='0.03' stroke-width='1'/%3E%3C/svg%3E");
   min-height: 100vh;
 }
 
 /* ---------- Header ---------- */
 .gamer-header {
-  background: rgba(0, 40, 85, 0.85);
+  background: rgb(255, 255, 255);
   backdrop-filter: blur(12px);
   border-bottom: 2px solid var(--accent-yellow);
   position: sticky;
@@ -66,7 +66,7 @@ body.home-page {
 }
 
 .brand-text {
-  background: linear-gradient(90deg, #fff, var(--accent-yellow));
+  background: linear-gradient(90deg, #ec9d0a, var(--accent-yellow));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -142,7 +142,7 @@ body.home-page {
   display: inline-flex;
   align-items: center;
   gap: 0;
-  background: rgba(255,255,255,0.05);
+  background: rgba(7, 73, 255, 0.804);
   border: 1px solid rgba(107,126,181,0.15);
   border-radius: 14px;
   padding: 0.65rem 1.5rem;
@@ -205,7 +205,7 @@ body.home-page {
   max-width: 1100px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.2rem;
   padding: 0 1rem;
 }
@@ -213,7 +213,7 @@ body.home-page {
 /* ---------- Level Card ---------- */
 .level-card {
   position: relative;
-  background: linear-gradient(165deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%);
+  background: linear-gradient(165deg, rgb(255, 255, 255) 0%, rgba(255, 255, 255, 0.774) 100%);
   border: 1px solid rgba(107,126,181,0.18);
   border-radius: 18px;
   padding: 1.4rem 1.2rem 1.2rem;
@@ -277,14 +277,14 @@ body.home-page {
 .level-difficulty.expert { background: rgba(220,38,38,0.12); color: #f87171; }
 
 .level-title {
-  color: #fff;
+  color: #201313;
   font-size: 1rem;
   font-weight: 700;
   margin: 0 0 0.3rem;
 }
 
 .level-desc {
-  color: rgba(255,255,255,0.45);
+  color: rgb(81, 69, 69);
   font-size: 0.8rem;
   line-height: 1.4;
   margin: 0 0 0.6rem;
@@ -333,7 +333,7 @@ body.home-page {
 /* Current / Playable */
 .level-current {
   border-color: var(--accent-yellow);
-  background: linear-gradient(165deg, rgba(245,197,24,0.08) 0%, rgba(0,91,170,0.08) 100%);
+  background: linear-gradient(165deg, rgb(255, 255, 255) 0%, rgba(255, 255, 255, 0.756) 100%);
 }
 
 .level-current .level-card-glow {
@@ -846,6 +846,10 @@ button {
   transition: transform 0.22s ease, opacity 0.2s ease;
 }
 
+.maze-cell {
+  padding: 0;
+}
+
 .bot {
   width: 100%;
   height: 100%;
@@ -861,6 +865,9 @@ button {
   border-radius: 10px;
   border: 2px dashed currentColor;
   background: color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.goal {
   color: #16a34a;
 }
 
@@ -990,8 +997,9 @@ button {
 .maze-wall {
   width: 100%;
   height: 100%;
-  border-radius: 8px;
-  background: linear-gradient(160deg, #111827, #1f2937);
+  border-radius: 0;
+  border: 1px solid #334155;
+  background: linear-gradient(160deg, #0f172a, #1e293b);
 }
 
 .hazard {

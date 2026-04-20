@@ -102,11 +102,7 @@
 			return null;
 		}
 
-		if (lessonNumber <= 2) {
-			return lessonNumber;
-		}
-
-		return lessonNumber + 1;
+		return lessonNumber;
 	}
 
 	// Nota: Define a quantidade de vidas por fase conforme a progressao solicitada.
@@ -1107,8 +1103,8 @@
     return;
   }
 
-  // Route: pagina3
-	if (path.endsWith('/pages/pagina3.html')) {
+  // Route: pagina3 (legacy - desativada)
+	if (path.endsWith('/pages/pagina3-parametros.html')) {
 		if (!ensureLessonAccess(3)) {
 			return;
 		}
@@ -1396,8 +1392,8 @@
     return;
   }
 
-  // Route: pagina3
-	if (path.endsWith('/pages/pagina3.html')) {
+  // Route: pagina4 (legacy - desativada)
+	if (path.endsWith('/pages/pagina4-labirinto.html')) {
 		if (!ensureLessonAccess(4)) {
 			return;
 		}
@@ -1878,8 +1874,8 @@
     return;
   }
 
-  // Route: pagina4
-	if (path.endsWith('/pages/pagina4.html')) {
+	// Route: pagina3
+	if (path.endsWith('/pages/pagina3.html')) {
 		if (!ensureLessonAccess(3)) {
 			return;
 		}
@@ -2444,8 +2440,8 @@
     return;
   }
 
-  // Route: pagina5
-	if (path.endsWith('/pages/pagina5.html')) {
+  // Route: pagina4
+	if (path.endsWith('/pages/pagina4.html')) {
 		if (!ensureLessonAccess(4)) {
 			return;
 		}
@@ -2924,8 +2920,8 @@
     return;
   }
 
-  // Route: pagina6
-	if (path.endsWith('/pages/pagina6.html')) {
+  // Route: pagina5
+	if (path.endsWith('/pages/pagina5.html')) {
 		if (!ensureLessonAccess(5)) {
 			return;
 		}
@@ -2964,40 +2960,61 @@
 		setupWinPanelLetter(winPanel);
 
     const startBot = { col: 1, row: ROWS - 2 };
+    const doorCell = { col: 6, row: 5 };
+    const leftPackageIds = ['red', 'blue'];
+
     const bases = [
-    	{ id: 'red', col: 10, row: 1, color: '#ef4444' },
-    	{ id: 'blue', col: 10, row: 4, color: '#3b82f6' },
-    	{ id: 'green', col: 10, row: 7, color: '#22c55e' }
+    	{ id: 'red', col: 2, row: 1, color: '#ef4444' },
+    	{ id: 'blue', col: 4, row: 2, color: '#3b82f6' },
+    	{ id: 'green', col: 10, row: 2, color: '#22c55e' }
     ];
+
+    const initialPackages = {
+    	red: { col: 2, row: 8 },
+    	blue: { col: 4, row: 9 },
+    	green: { col: 10, row: 8 }
+    };
+
     const packages = [
-    	{ id: 'red', col: 2, row: 8, color: '#ef4444', delivered: false },
-    	{ id: 'blue', col: 4, row: 6, color: '#3b82f6', delivered: false },
-    	{ id: 'green', col: 6, row: 2, color: '#22c55e', delivered: false }
+    	{ id: 'red', col: initialPackages.red.col, row: initialPackages.red.row, color: '#ef4444', delivered: false },
+    	{ id: 'blue', col: initialPackages.blue.col, row: initialPackages.blue.row, color: '#3b82f6', delivered: false },
+    	{ id: 'green', col: initialPackages.green.col, row: initialPackages.green.row, color: '#22c55e', delivered: false }
     ];
-    const mazeWalls = [
-    	{ col: 0, row: 0 }, { col: 1, row: 0 }, { col: 2, row: 0 }, { col: 3, row: 0 }, { col: 4, row: 0 }, { col: 5, row: 0 }, { col: 6, row: 0 }, { col: 7, row: 0 }, { col: 8, row: 0 }, { col: 9, row: 0 }, { col: 10, row: 0 }, { col: 11, row: 0 }, { col: 12, row: 0 },
-    	{ col: 0, row: 1 }, { col: 12, row: 1 },
-    	{ col: 0, row: 2 }, { col: 12, row: 2 },
-    	{ col: 0, row: 3 }, { col: 12, row: 3 },
-    	{ col: 0, row: 4 }, { col: 12, row: 4 },
-    	{ col: 0, row: 5 }, { col: 12, row: 5 },
-    	{ col: 0, row: 6 }, { col: 12, row: 6 },
-    	{ col: 0, row: 7 }, { col: 12, row: 7 },
-    	{ col: 0, row: 8 }, { col: 12, row: 8 },
-    	{ col: 0, row: 9 }, { col: 12, row: 9 },
-    	{ col: 0, row: 10 }, { col: 1, row: 10 }, { col: 2, row: 10 }, { col: 3, row: 10 }, { col: 4, row: 10 }, { col: 5, row: 10 }, { col: 6, row: 10 }, { col: 7, row: 10 }, { col: 8, row: 10 }, { col: 9, row: 10 }, { col: 10, row: 10 }, { col: 11, row: 10 }, { col: 12, row: 10 },
-    	{ col: 3, row: 1 }, { col: 3, row: 2 }, { col: 3, row: 3 },
-    	{ col: 5, row: 3 }, { col: 5, row: 4 }, { col: 5, row: 5 },
-    	{ col: 7, row: 5 }, { col: 7, row: 6 }, { col: 7, row: 7 },
-    	{ col: 9, row: 2 }, { col: 9, row: 3 }, { col: 9, row: 5 }, { col: 9, row: 6 },
-    	{ col: 4, row: 8 }, { col: 5, row: 8 }, { col: 7, row: 8 }, { col: 8, row: 8 }
-    ];
-    const hazards = [
-    	{ id: 'h1', col: 2, row: 1, dir: 1 },
-    	{ id: 'h2', col: 8, row: 3, dir: -1 },
-    	{ id: 'h3', col: 6, row: 7, dir: 1 },
-    	{ id: 'h4', col: 4, row: 5, dir: 1 }
-    ];
+
+    // Nota: Corredores de 1 celula com varias bifurcacoes, deixando o mapa menos espacoso.
+    const openCells = new Set([
+	    // Inicio e caixas da esquerda
+	    '1,9', '1,8', '2,8', '2,9', '3,9', '4,9',
+
+	    // Rotas para entregar red e blue
+	    '2,7', '2,6', '2,5', '1,5', '1,4', '1,3', '1,2', '2,2', '2,1',
+	    '3,2', '4,2', '4,3', '4,4', '4,5', '4,6', '4,7', '3,7', '3,8',
+	    '3,6', '3,5',
+
+	    // Acesso a porta
+	    '5,5', '6,5',
+
+	    // Lado direito: caixa final e base
+	    '7,5', '8,5', '9,5', '10,5', '10,6', '10,7', '10,8',
+	    '11,7', '11,6', '11,5', '11,4', '10,4', '10,3', '10,2',
+
+	    // Bifurcacoes (rotas alternativas curtas)
+	    '8,4', '9,4', '8,6', '9,6', '9,7',
+	    '8,3', '9,3', '8,2', '9,2'
+    ]);
+
+    const mazeWalls = [];
+    for (let row = 0; row < ROWS; row += 1) {
+	    for (let col = 0; col < COLS; col += 1) {
+		    const key = col + ',' + row;
+		    const isBorder = row === 0 || row === ROWS - 1 || col === 0 || col === COLS - 1;
+		    if (isBorder || !openCells.has(key)) {
+			    mazeWalls.push({ col, row });
+		    }
+	    }
+    }
+
+    const wallSet = new Set(mazeWalls.map(wall => wall.col + ',' + wall.row));
 
     let state = {
     	botCol: startBot.col,
@@ -3005,10 +3022,11 @@
     	carryingPackageId: null,
     	usedPickCommand: false,
     	usedDropCommand: false,
-    	turnsLeft: 0
+		doorUnlocked: false,
+		doorOpen: false,
+		doorAnimating: false
     };
 
-    // Nota: Monta a estrutura visual necessaria para a fase.
     function buildGrid() {
     	board.style.setProperty('--cell-size', CELL + 'px');
     	board.style.setProperty('--cols', COLS);
@@ -3023,12 +3041,10 @@
     	arenaGrid.appendChild(fragment);
     }
 
-    // Nota: Posiciona um elemento na grade usando coluna e linha.
     function setEntityPosition(el, col, row) {
     	el.style.transform = 'translate(' + (col * CELL) + 'px,' + (row * CELL) + 'px)';
     }
 
-    // Nota: Limita coordenadas para permanecer dentro dos limites do tabuleiro.
     function clampToBoard(col, row) {
     	return {
     		col: Math.max(0, Math.min(COLS - 1, col)),
@@ -3036,32 +3052,21 @@
     	};
     }
 
-    // Nota: Gera uma chave textual de coordenadas para comparacoes e buscas.
-    function keyFor(col, row) {
-    	return col + ',' + row;
+    function isDoorCell(col, row) {
+    	return col === doorCell.col && row === doorCell.row;
     }
 
-    // Nota: Verifica se uma condicao especifica e verdadeira para a posicao atual.
     function isWall(col, row) {
-    	return mazeWalls.some(wall => wall.col === col && wall.row === row);
+    	if (!state.doorOpen && isDoorCell(col, row)) {
+    		return true;
+    	}
+    	return wallSet.has(col + ',' + row);
     }
 
-    // Nota: Verifica se uma condicao especifica e verdadeira para a posicao atual.
     function isWalkable(col, row) {
     	return col >= 0 && col < COLS && row >= 0 && row < ROWS && !isWall(col, row);
     }
 
-    // Nota: Verifica se uma condicao especifica e verdadeira para a posicao atual.
-    function isHazardAt(col, row) {
-    	return hazards.some(hazard => hazard.col === col && hazard.row === row);
-    }
-
-    // Nota: Calcula distancia Manhattan entre dois pontos da grade.
-    function manhattanDistance(colA, rowA, colB, rowB) {
-    	return Math.abs(colA - colB) + Math.abs(rowA - rowB);
-    }
-
-    // Nota: Monta a estrutura visual necessaria para a fase.
     function buildMaze() {
     	mazeLayer.innerHTML = '';
     	for (const wall of mazeWalls) {
@@ -3073,9 +3078,58 @@
     		wallCell.appendChild(wallVisual);
     		mazeLayer.appendChild(wallCell);
     	}
+
+		if (!state.doorOpen || state.doorAnimating) {
+    		const doorWrapper = document.createElement('div');
+			doorWrapper.className = 'maze-cell';
+    		doorWrapper.style.transform = 'translate(' + (doorCell.col * CELL) + 'px,' + (doorCell.row * CELL) + 'px)';
+
+			const doorVisual = document.createElement('div');
+			doorVisual.className = state.doorAnimating ? 'maze-door maze-door-opening' : 'maze-door';
+
+			const doorFrame = document.createElement('span');
+			doorFrame.className = 'maze-door-frame';
+
+			const leftPanel = document.createElement('span');
+			leftPanel.className = 'maze-door-panel left';
+			const rightPanel = document.createElement('span');
+			rightPanel.className = 'maze-door-panel right';
+
+			const leftDetail = document.createElement('span');
+			leftDetail.className = 'maze-door-detail';
+			const rightDetail = document.createElement('span');
+			rightDetail.className = 'maze-door-detail';
+			leftPanel.appendChild(leftDetail);
+			rightPanel.appendChild(rightDetail);
+
+			const leftHingeTop = document.createElement('span');
+			leftHingeTop.className = 'maze-door-hinge left top';
+			const leftHingeBottom = document.createElement('span');
+			leftHingeBottom.className = 'maze-door-hinge left bottom';
+			const rightHingeTop = document.createElement('span');
+			rightHingeTop.className = 'maze-door-hinge right top';
+			const rightHingeBottom = document.createElement('span');
+			rightHingeBottom.className = 'maze-door-hinge right bottom';
+
+			const handleLeft = document.createElement('span');
+			handleLeft.className = 'maze-door-handle left';
+			const handleRight = document.createElement('span');
+			handleRight.className = 'maze-door-handle right';
+
+			doorVisual.appendChild(doorFrame);
+			doorVisual.appendChild(leftPanel);
+			doorVisual.appendChild(rightPanel);
+			doorVisual.appendChild(leftHingeTop);
+			doorVisual.appendChild(leftHingeBottom);
+			doorVisual.appendChild(rightHingeTop);
+			doorVisual.appendChild(rightHingeBottom);
+			doorVisual.appendChild(handleLeft);
+			doorVisual.appendChild(handleRight);
+    		doorWrapper.appendChild(doorVisual);
+    		mazeLayer.appendChild(doorWrapper);
+    	}
     }
 
-    // Nota: Renderiza ou atualiza elementos visuais na tela com base no estado atual.
     function renderBases() {
     	baseLayer.innerHTML = '';
     	for (const base of bases) {
@@ -3093,7 +3147,6 @@
     	}
     }
 
-    // Nota: Renderiza ou atualiza elementos visuais na tela com base no estado atual.
     function renderPackages() {
     	packageLayer.innerHTML = '';
     	for (const packageItem of packages) {
@@ -3113,31 +3166,7 @@
     	}
     }
 
-    // Nota: Renderiza ou atualiza elementos visuais na tela com base no estado atual.
-    function renderHazards() {
-    	hazardLayer.innerHTML = '';
-    	for (const hazard of hazards) {
-    		const hazardCell = document.createElement('div');
-    		hazardCell.className = 'hazard-cell';
-    		hazardCell.dataset.hazardId = hazard.id;
-    		const hazardVisual = document.createElement('div');
-    		hazardVisual.className = 'hazard';
-    		hazardCell.appendChild(hazardVisual);
-    		setEntityPosition(hazardCell, hazard.col, hazard.row);
-    		hazardLayer.appendChild(hazardCell);
-    	}
-    }
-
-    // Nota: Implementa uma parte especifica da logica desta licao.
     function refreshLayerPositions() {
-    	for (const baseCell of baseLayer.querySelectorAll('.base-cell')) {
-    		const baseId = baseCell.dataset.baseId;
-    		const baseItem = bases.find(item => item.id === baseId);
-    		if (baseItem) {
-    			setEntityPosition(baseCell, baseItem.col, baseItem.row);
-    		}
-    	}
-
     	for (const packageCell of packageLayer.querySelectorAll('.package-cell')) {
     		const packageId = packageCell.dataset.packageId;
     		const packageItem = packages.find(item => item.id === packageId);
@@ -3145,17 +3174,44 @@
     			setEntityPosition(packageCell, packageItem.col, packageItem.row);
     		}
     	}
+    }
 
-    	for (const hazardCell of hazardLayer.querySelectorAll('.hazard-cell')) {
-    		const hazardId = hazardCell.dataset.hazardId;
-    		const hazardItem = hazards.find(item => item.id === hazardId);
-    		if (hazardItem) {
-    			setEntityPosition(hazardCell, hazardItem.col, hazardItem.row);
-    		}
+    function countDeliveredLeftPackages() {
+    	return packages.filter(item => leftPackageIds.includes(item.id) && item.delivered).length;
+    }
+
+    function shouldDoorOpen() {
+    	return countDeliveredLeftPackages() === leftPackageIds.length;
+    }
+
+    function updateDoorState() {
+	    if (!state.doorUnlocked && shouldDoorOpen()) {
+			state.doorUnlocked = true;
+	    	statusEl.className = 'status ok';
+			statusEl.textContent = 'Porta destrancada! Encoste nela para abrir e passar para o lado direito.';
+			draw();
     	}
     }
 
-    // Nota: Desenha o estado atual dos elementos no tabuleiro.
+	function triggerDoorOpeningOnTouch() {
+		if (!state.doorUnlocked || state.doorOpen || state.doorAnimating) {
+			return;
+		}
+
+		state.doorAnimating = true;
+		buildMaze();
+		statusEl.className = 'status ok';
+		statusEl.textContent = 'Porta abrindo... siga para o lado direito com a ultima caixa.';
+		draw();
+
+		setTimeout(function () {
+			state.doorAnimating = false;
+			state.doorOpen = true;
+			buildMaze();
+			draw();
+		}, 760);
+	}
+
     function draw() {
     	setEntityPosition(botCell, state.botCol, state.botRow);
     	const carriedPackage = state.carryingPackageId ? packages.find(item => item.id === state.carryingPackageId) : null;
@@ -3171,22 +3227,22 @@
     		}
     	}
 
-    	for (const hazard of hazards) {
-    		const hazardCell = hazardLayer.querySelector('[data-hazard-id="' + hazard.id + '"]');
-    		if (hazardCell) {
-    			setEntityPosition(hazardCell, hazard.col, hazard.row);
-    		}
+    	const deliveredLeft = countDeliveredLeftPackages();
+		if (state.doorAnimating) {
+			turnCounter.textContent = 'Porta laranja: ABRINDO... Entregas da esquerda: ' + deliveredLeft + '/2';
+		} else if (state.doorOpen) {
+    		turnCounter.textContent = 'Porta laranja: ABERTA. Entregas da esquerda: ' + deliveredLeft + '/2';
+		} else if (state.doorUnlocked) {
+			turnCounter.textContent = 'Porta laranja: DESTRANCADA. Encoste para abrir. Entregas da esquerda: ' + deliveredLeft + '/2';
+    	} else {
+    		turnCounter.textContent = 'Porta laranja: FECHADA. Entregas da esquerda: ' + deliveredLeft + '/2';
     	}
-
-    	turnCounter.textContent = 'Turnos restantes: ' + state.turnsLeft;
     }
 
-    // Nota: Padroniza o texto do comando para facilitar a validacao.
     function normalizeCommand(raw) {
     	return raw.replace(/\s+/g, '').toLowerCase();
     }
 
-    // Nota: Valida e interpreta um comando digitado no prompt.
     function parseCommand(rawLine) {
     	const cmd = normalizeCommand(rawLine);
 
@@ -3214,55 +3270,45 @@
 
 		setupPromptEditor(cmdInput, line => Boolean(parseCommand(line)));
 
-    // Nota: Oculta o painel ou elemento relacionado a esta funcao.
     function hideErrorPanel() {
     	errorPanel.classList.add('hidden');
     	errorPanelMsg.textContent = '';
     }
 
-    // Nota: Exibe o painel ou feedback correspondente desta etapa.
     function showErrorPanel(command) {
     	errorPanelMsg.textContent = 'Comando invalido: "' + command + '". Revise e tente novamente.';
     	errorPanel.classList.remove('hidden');
     }
 
-    // Nota: Oculta o painel ou elemento relacionado a esta funcao.
     function hideDocsPanel() {
     	docsPanel.classList.add('hidden');
     }
 
-    // Nota: Exibe o painel ou feedback correspondente desta etapa.
     function showDocsPanel() {
     	docsPanel.classList.remove('hidden');
     }
 
-    // Nota: Oculta o painel ou elemento relacionado a esta funcao.
     function hideWinPanel() {
     	winPanel.classList.add('hidden');
     }
 
-    // Nota: Exibe o painel ou feedback correspondente desta etapa.
     function showWinPanel(executedSteps) {
-    	winSummary.textContent = 'Voce entregou todos os pacotes em ' + executedSteps + ' turnos.';
+    	winSummary.textContent = 'Voce concluiu o labirinto complexo em ' + executedSteps + ' comandos.';
     	winPanel.classList.remove('hidden');
     }
 
-    // Nota: Oculta o painel ou elemento relacionado a esta funcao.
     function hideFailPanel() {
     	failPanel.classList.add('hidden');
     }
 
-    // Nota: Exibe o painel ou feedback correspondente desta etapa.
     function showFailPanel() {
     	failPanel.classList.remove('hidden');
     }
 
-    // Nota: Cria um atraso assicrono para animar a execucao passo a passo.
     function wait(ms) {
     	return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    // Nota: Move o agente ou obstaculo conforme as regras da fase.
     function moveBot(action) {
     	let nextCol = state.botCol;
     	let nextRow = state.botRow;
@@ -3277,7 +3323,11 @@
     		nextRow += 1;
     	}
 
-    	const bounded = clampToBoard(nextCol, nextRow);
+	    const bounded = clampToBoard(nextCol, nextRow);
+		if (isDoorCell(bounded.col, bounded.row) && !state.doorOpen) {
+			triggerDoorOpeningOnTouch();
+			return;
+		}
     	if (isWalkable(bounded.col, bounded.row)) {
     		state.botCol = bounded.col;
     		state.botRow = bounded.row;
@@ -3292,56 +3342,18 @@
     	}
     }
 
-    // Nota: Move o agente ou obstaculo conforme as regras da fase.
-    function moveHazards() {
-    	for (const hazard of hazards) {
-    		const candidates = [
-    			{ col: hazard.col + 1, row: hazard.row, dir: 1 },
-    			{ col: hazard.col - 1, row: hazard.row, dir: -1 },
-    			{ col: hazard.col, row: hazard.row + 1, dir: 1 },
-    			{ col: hazard.col, row: hazard.row - 1, dir: -1 }
-    		]
-    			.filter(candidate => isWalkable(candidate.col, candidate.row))
-    			.filter(candidate => !isHazardAt(candidate.col, candidate.row))
-    			.filter(candidate => !(candidate.col === state.botCol && candidate.row === state.botRow));
-
-    		candidates.sort((a, b) => {
-    			const distA = manhattanDistance(a.col, a.row, state.botCol, state.botRow);
-    			const distB = manhattanDistance(b.col, b.row, state.botCol, state.botRow);
-    			return distA - distB;
-    		});
-
-    		if (candidates.length) {
-    			hazard.col = candidates[0].col;
-    			hazard.row = candidates[0].row;
-    			hazard.dir = candidates[0].dir;
-    		} else {
-    			hazard.dir *= -1;
-    		}
-    	}
-    }
-
-    // Nota: Implementa uma parte especifica da logica desta licao.
-    function collisionWithHazard() {
-    	return hazards.some(hazard => hazard.col === state.botCol && hazard.row === state.botRow);
-    }
-
-    // Nota: Retorna um valor de apoio para uso na logica da fase.
     function getPackageAtBot() {
     	return packages.find(packageItem => !packageItem.delivered && packageItem.col === state.botCol && packageItem.row === state.botRow) || null;
     }
 
-    // Nota: Retorna um valor de apoio para uso na logica da fase.
     function getBaseForPackage(packageId) {
     	return bases.find(base => base.id === packageId) || null;
     }
 
-    // Nota: Verifica se todas as condicoes exigidas foram atendidas.
     function allPackagesDelivered() {
     	return packages.every(packageItem => packageItem.delivered);
     }
 
-    // Nota: Realiza a acao de pegar item, respeitando as condicoes da fase.
     function pickPackage() {
     	state.usedPickCommand = true;
 
@@ -3355,7 +3367,6 @@
     	}
     }
 
-    // Nota: Realiza a acao de largar item e valida o resultado da entrega.
     function dropPackage() {
     	state.usedDropCommand = true;
 
@@ -3371,66 +3382,38 @@
 
     	carriedPackage.col = state.botCol;
     	carriedPackage.row = state.botRow;
-    	const matchingBase = getBaseForPackage(carriedPackage.id);
+    const matchingBase = getBaseForPackage(carriedPackage.id);
     	if (matchingBase && carriedPackage.col === matchingBase.col && carriedPackage.row === matchingBase.row) {
     		carriedPackage.delivered = true;
+    		updateDoorState();
     	}
 
     	state.carryingPackageId = null;
     }
 
-    // Nota: Restaura estados e elementos para reiniciar a tentativa atual.
     function resetPackages() {
-    	packages[0].col = 2;
-    	packages[0].row = 8;
-    	packages[0].delivered = false;
-    	packages[1].col = 4;
-    	packages[1].row = 6;
-    	packages[1].delivered = false;
-    	packages[2].col = 6;
-    	packages[2].row = 2;
-    	packages[2].delivered = false;
+    	for (const packageItem of packages) {
+    		const initialPos = initialPackages[packageItem.id];
+    		packageItem.col = initialPos.col;
+    		packageItem.row = initialPos.row;
+    		packageItem.delivered = false;
+    	}
     }
 
-    // Nota: Restaura estados e elementos para reiniciar a tentativa atual.
-    function resetHazards() {
-    	hazards[0].col = 2;
-    	hazards[0].row = 1;
-    	hazards[0].dir = 1;
-    	hazards[1].col = 8;
-    	hazards[1].row = 3;
-    	hazards[1].dir = -1;
-    	hazards[2].col = 6;
-    	hazards[2].row = 7;
-    	hazards[2].dir = 1;
-    	hazards[3].col = 4;
-    	hazards[3].row = 5;
-    	hazards[3].dir = -1;
-    }
-
-    // Nota: Executa um turno completo da fase, incluindo movimento e verificacoes.
-    async function stepTurn(action) {
+    function applyAction(action) {
     	if (action === 'pegar') {
     		pickPackage();
-    	} else if (action === 'largar') {
+    		return;
+    	}
+
+    	if (action === 'largar') {
     		dropPackage();
-    	} else {
-    		moveBot(action);
+    		return;
     	}
 
-    	moveHazards();
-    	state.turnsLeft += 1;
-    	draw();
-    	await wait(200);
-
-    	if (collisionWithHazard()) {
-    		return 'collision';
-    	}
-
-    	return 'ok';
+    	moveBot(action);
     }
 
-    // Nota: Restaura estados e elementos para reiniciar a tentativa atual.
     function resetLesson() {
     	hideErrorPanel();
     	hideDocsPanel();
@@ -3442,21 +3425,20 @@
     		carryingPackageId: null,
     		usedPickCommand: false,
     		usedDropCommand: false,
-    		turnsLeft: 0
+			doorUnlocked: false,
+			doorOpen: false,
+			doorAnimating: false
     	};
     	resetPackages();
-    	resetHazards();
     	renderPackages();
     	renderBases();
-    	renderHazards();
+    	buildMaze();
     	refreshLayerPositions();
     	draw();
     	statusEl.className = 'status';
-    	statusEl.textContent = 'Posicao resetada para nova tentativa.';
-    	turnCounter.textContent = 'Turnos restantes: 0';
+	    statusEl.textContent = 'Entregue as 2 caixas do lado esquerdo para destrancar a porta laranja.';
     }
 
-    // Nota: Executa os comandos do prompt, aplicando regras e verificando vitoria ou falha.
     async function executeCommands() {
     	hideErrorPanel();
     	hideWinPanel();
@@ -3476,7 +3458,7 @@
     	runBtn.disabled = true;
     	resetBtn.disabled = true;
     	statusEl.className = 'status';
-    	statusEl.textContent = 'Executando com turnos dos blocos vermelhos...';
+    	statusEl.textContent = 'Executando no labirinto complexo...';
     	let executedSteps = 0;
 
     	const parsedLines = [];
@@ -3499,30 +3481,11 @@
     		}
 
     		for (let step = 0; step < parsed.amount; step += 1) {
-    			const result = await stepTurn(parsed.action);
+    			applyAction(parsed.action);
     			executedSteps += 1;
-    			if (result === 'collision') {
-    				state = {
-    					botCol: startBot.col,
-    					botRow: startBot.row,
-    					carryingPackageId: null,
-    					usedPickCommand: false,
-    					usedDropCommand: false,
-    					turnsLeft: 0
-    				};
-    				resetPackages();
-    				resetHazards();
-    				renderPackages();
-    				renderHazards();
-    				refreshLayerPositions();
-    				draw();
-    				runBtn.disabled = false;
-    				resetBtn.disabled = false;
-    				statusEl.className = 'status err';
-    				statusEl.textContent = 'Falha: o boneco encostou em um bloco vermelho. A fase foi reiniciada.';
-    				showFailPanel();
-    				return;
-    			}
+    			draw();
+    			await wait(210);
+
     			if (allPackagesDelivered()) {
     				break;
     			}
@@ -3534,32 +3497,18 @@
 
     	if (allPackagesDelivered() && state.usedPickCommand && state.usedDropCommand) {
     		statusEl.className = 'status ok';
-    		statusEl.textContent = 'Excelente! Voce entregou todos os pacotes e evitou os blocos vermelhos.';
+    		statusEl.textContent = 'Excelente! Voce abriu a porta laranja e concluiu o lado direito.';
 	    	markLessonAsCompleted(5);
     		showWinPanel(executedSteps);
     		return;
     	}
 
-    	state = {
-    		botCol: startBot.col,
-    		botRow: startBot.row,
-    		carryingPackageId: null,
-    		usedPickCommand: false,
-    		usedDropCommand: false,
-    		turnsLeft: 0
-    	};
-    	resetPackages();
-    	resetHazards();
-    	renderPackages();
-    	renderHazards();
-    	refreshLayerPositions();
-    	draw();
+    	resetLesson();
     	statusEl.className = 'status err';
     	statusEl.textContent = 'Falha na rota: a fase foi resetada para nova tentativa.';
     	showFailPanel();
     }
 
-    // Nota: Troca do tutorial para a area pratica da licao.
     function startPractice() {
     	tutorialPanel.classList.add('hidden');
     	practicePanel.classList.remove('hidden');
@@ -3578,7 +3527,9 @@
     buildMaze();
     renderBases();
     renderPackages();
-    renderHazards();
+    if (hazardLayer) {
+    	hazardLayer.innerHTML = '';
+    }
     resetLesson();
 
     })();

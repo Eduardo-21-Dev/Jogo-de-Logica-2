@@ -44,7 +44,8 @@ body.home-page {
 .gamer-header {
   background: rgb(255, 255, 255);
   backdrop-filter: blur(12px);
-  border-bottom: 2px solid var(--accent-yellow);
+  border-bottom: 10px solid;
+  border-image: linear-gradient(to right, #FDB913 0%, #FDB913 20%, #F37021 20%, #F37021 40%, #456BB2 40%, #456BB2 60%, #004A8F 60%, #004A8F 80%, #1D2A40 80%, #1D2A40 100%  /* Azul Escuro */) 1;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -84,13 +85,20 @@ body.home-page {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  color: rgba(255,255,255,0.7);
+  color: #456BB2;
   font-weight: 700;
   font-size: 0.88rem;
 }
 
-.header-stat .fa-heart { color: #ef4444; }
-.header-stat .fa-star { color: var(--accent-yellow); }
+.header-stat .fa-heart {
+  color: #ef4444;
+  font-size: 2.5rem;
+}
+
+.header-stat .fa-star {
+  color: var(--accent-yellow);
+  font-size: 2.5rem;
+}
 
 /* ---------- Hero ---------- */
 .hero-section {
@@ -366,7 +374,7 @@ body.home-page {
 
 .level-current:hover {
   transform: translateY(-6px);
-  box-shadow: 0 16px 48px rgba(245,197,24,0.12), 0 0 0 1px rgba(245,197,24,0.4);
+  box-shadow: 0 16px 48px rgba(245, 197, 24, 0.974), 0 0 0 1px rgba(245,197,24,0.4);
 }
 
 .level-current:hover .level-icon-wrap {
@@ -391,20 +399,20 @@ body.home-page {
 }
 
 .level-completed .level-number {
-  background: var(--ok);
-  border-color: var(--ok);
-  color: #fff;
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
 }
 
 .level-completed .level-icon-wrap {
-  background: rgba(22,163,74,0.12);
-  border: 2px solid rgba(22,163,74,0.3);
-  color: #4ade80;
+  background: rgba(22, 53, 163, 0.12);
+  border: 2px solid rgba(22, 107, 163, 0.998);
+  color: #4a8ade;
 }
 
 .level-completed:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 36px rgba(22,163,74,0.1);
+  box-shadow: 0 12px 36px rgb(0, 225, 255);
 }
 
 /* Boss card */
@@ -505,14 +513,19 @@ body.home-page {
 /* Licoes */
 body.lesson-page {
   display: block;
-  background: radial-gradient(circle at 20% 20%, #eef4ff 0%, var(--bg) 35%, #dfe8ff 100%);
-  padding: 0 24px 24px;
+  background : var(--primary);
+  background-image:
+    radial-gradient(ellipse at 15% 10%, rgb(14, 126, 231) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 90%, rgb(8, 111, 255) 0%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h60v60H0z' fill='none'/%3E%3Cpath d='M30 0v60M0 30h60' stroke='%23ffffff' stroke-opacity='0.03' stroke-width='1'/%3E%3C/svg%3E");
+  min-height: 100vh;
 }
 
 body.lesson-page .game-topbar {
   margin: 0 -24px 16px;
   background: linear-gradient(90deg, var(--dark-blue) 0%, var(--navy) 50%, var(--dark-blue) 100%);
-  border-bottom: 3px solid var(--accent-yellow);
+  border-bottom: 10px solid;
+  border-image: linear-gradient(to right, #FDB913 0%, #FDB913 20%, #F37021 20%, #F37021 40%, #456BB2 40%, #456BB2 60%, #004A8F 60%, #004A8F 80%, #1D2A40 80%, #1D2A40 100%  /* Azul Escuro */) 1;
   box-shadow: 0 2px 15px rgba(30, 41, 59, 0.3);
 }
 
@@ -527,6 +540,11 @@ body.lesson-page .game-topbar-logo {
   text-decoration: none;
   font-weight: 800;
   letter-spacing: 1px;
+}
+
+.logo-img{
+  width: 10rem;
+  margin-left: 3rem;
 }
 
 body.lesson-page .game-topbar-logo:hover {
@@ -1000,6 +1018,155 @@ button {
   border-radius: 0;
   border: 1px solid #334155;
   background: linear-gradient(160deg, #0f172a, #1e293b);
+}
+
+.maze-door {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border: 1px solid #78350f;
+  border-radius: 1px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #7c2d12, #431407);
+  box-shadow: inset 0 0 0 1px rgba(120, 53, 15, 0.8), 0 0 18px rgba(249, 115, 22, 0.35);
+}
+
+.maze-door-frame {
+  position: absolute;
+  inset: 0;
+  border: 2px solid #f59e0b;
+  box-shadow: inset 0 0 0 1px rgba(254, 215, 170, 0.55);
+  pointer-events: none;
+  z-index: 4;
+}
+
+.maze-door-panel {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: 50%;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(251, 146, 60, 0.15) 0,
+      rgba(251, 146, 60, 0.15) 3px,
+      rgba(234, 88, 12, 0.08) 3px,
+      rgba(234, 88, 12, 0.08) 6px
+    ),
+    linear-gradient(180deg, #fb923c, #c2410c 70%, #9a3412);
+  box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.35);
+  z-index: 2;
+}
+
+.maze-door-panel.left {
+  left: 0;
+  transform-origin: left center;
+  border-right: 1px solid rgba(254, 215, 170, 0.35);
+}
+
+.maze-door-panel.right {
+  right: 0;
+  transform-origin: right center;
+  border-left: 1px solid rgba(254, 215, 170, 0.35);
+}
+
+.maze-door-detail {
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  top: 20%;
+  bottom: 20%;
+  border: 1px solid rgba(255, 237, 213, 0.45);
+  box-shadow: inset 0 0 0 1px rgba(146, 64, 14, 0.4);
+}
+
+.maze-door-hinge {
+  position: absolute;
+  width: 4px;
+  height: 8px;
+  border-radius: 2px;
+  background: #fcd34d;
+  box-shadow: 0 0 4px rgba(252, 211, 77, 0.5);
+  z-index: 5;
+}
+
+.maze-door-hinge.left {
+  left: 1px;
+}
+
+.maze-door-hinge.right {
+  right: 1px;
+}
+
+.maze-door-hinge.top {
+  top: 9px;
+}
+
+.maze-door-hinge.bottom {
+  bottom: 9px;
+}
+
+.maze-door-handle {
+  position: absolute;
+  width: 5px;
+  height: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: #fde68a;
+  box-shadow: 0 0 7px rgba(253, 230, 138, 0.75);
+  z-index: 6;
+}
+
+.maze-door-handle.left {
+  right: 2px;
+}
+
+.maze-door-handle.right {
+  left: 2px;
+}
+
+.maze-door-opening .maze-door-panel.left {
+  animation: mazeDoorOpenLeft 0.75s ease forwards;
+}
+
+.maze-door-opening .maze-door-panel.right {
+  animation: mazeDoorOpenRight 0.75s ease forwards;
+}
+
+.maze-door-opening .maze-door-handle {
+  animation: mazeDoorHandleFade 0.55s ease forwards;
+}
+
+@keyframes mazeDoorOpenLeft {
+  from {
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+  to {
+    transform: rotate(-95deg) translateX(-2px);
+    opacity: 0.15;
+  }
+}
+
+@keyframes mazeDoorOpenRight {
+  from {
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+  to {
+    transform: rotate(95deg) translateX(2px);
+    opacity: 0.15;
+  }
+}
+
+@keyframes mazeDoorHandleFade {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 .hazard {

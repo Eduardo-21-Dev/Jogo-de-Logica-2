@@ -3,7 +3,7 @@
 	const PROGRESS_STORAGE_KEY = 'css-master-progress-v1';
 	const HARD_RESET_FLAG_KEY = 'css-master-hard-reset';
 	const TOTAL_LESSONS = 6;
-	const LAST_PLAYABLE_LESSON = 5;
+	const LAST_PLAYABLE_LESSON = 6;
 
 	// Nota: Aplica reset de progresso quando o usuario usa Ctrl+F5.
 	function setupHardResetOnCtrlF5() {
@@ -3199,14 +3199,15 @@
 		}
 
 		state.doorAnimating = true;
+		// Libera a passagem imediatamente para nao consumir movimentos durante a animacao.
+		state.doorOpen = true;
 		buildMaze();
 		statusEl.className = 'status ok';
-		statusEl.textContent = 'Porta abrindo... siga para o lado direito com a ultima caixa.';
+		statusEl.textContent = 'Porta abrindo... passagem liberada para o lado direito.';
 		draw();
 
 		setTimeout(function () {
 			state.doorAnimating = false;
-			state.doorOpen = true;
 			buildMaze();
 			draw();
 		}, 760);
@@ -3326,7 +3327,6 @@
 	    const bounded = clampToBoard(nextCol, nextRow);
 		if (isDoorCell(bounded.col, bounded.row) && !state.doorOpen) {
 			triggerDoorOpeningOnTouch();
-			return;
 		}
     	if (isWalkable(bounded.col, bounded.row)) {
     		state.botCol = bounded.col;
@@ -3535,5 +3535,779 @@
     })();
     return;
   }
+
+
+  // Route: pagina6
+	if (path.endsWith('/pages/pagina6.html')) {
+		if (!ensureLessonAccess(6)) {
+			return;
+		}
+    (function () {
+	const CELL = 32;
+	const COLS = 21;
+	const ROWS = 15;
+
+    const tutorialPanel = document.getElementById('tutorialPanel');
+    const practicePanel = document.getElementById('practicePanel');
+    const startPracticeBtn = document.getElementById('startPracticeBtn');
+
+    const board = document.getElementById('board');
+    const arenaGrid = document.getElementById('arenaGrid');
+    const mazeLayer = document.getElementById('mazeLayer');
+    const baseLayer = document.getElementById('baseLayer');
+    const packageLayer = document.getElementById('packageLayer');
+    const botCell = document.getElementById('botCell');
+    const cmdInput = document.getElementById('cmdInput');
+    const runBtn = document.getElementById('runBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const docsBtn = document.getElementById('docsBtn');
+    const statusEl = document.getElementById('status');
+    const turnCounter = document.getElementById('turnCounter');
+    const objectiveAtoC = document.getElementById('objectiveAtoC');
+    const objectiveCtoB = document.getElementById('objectiveCtoB');
+    const objectiveBtoA = document.getElementById('objectiveBtoA');
+    const errorPanel = document.getElementById('errorPanel');
+    const errorPanelMsg = document.getElementById('errorPanelMsg');
+    const errorPanelClose = document.getElementById('errorPanelClose');
+    const docsPanel = document.getElementById('docsPanel');
+    const docsPanelClose = document.getElementById('docsPanelClose');
+    const winPanel = document.getElementById('winPanel');
+    const winSummary = document.getElementById('winSummary');
+    const failPanel = document.getElementById('failPanel');
+    const failPanelOk = document.getElementById('failPanelOk');
+
+		setupWinPanelLetter(winPanel);
+
+    const areaMeta = {
+    	A: { name: 'Area A', color: '#3b82f6' },
+    	C: { name: 'Area C', color: '#22c55e' },
+    	B: { name: 'Area B', color: '#f97316' }
+    };
+
+    const startBot = { col: 1, row: 2 };
+	const doorCtoBCell = { col: 14, row: 6 };
+	const doorBtoACell = { col: 7, row: 10 };
+	const portalAtoCEntry = { col: 6, row: 3 };
+	const portalAtoCExit = { col: 8, row: 3 };
+
+    const bases = [
+    	{
+    		id: 'baseA',
+    		area: 'A',
+	    		col: 4,
+	    		row: 11,
+    		color: areaMeta.A.color,
+    		expects: 'B'
+    	},
+    	{
+    		id: 'baseC',
+    		area: 'C',
+	    		col: 12,
+	    		row: 4,
+    		color: areaMeta.C.color,
+    		expects: 'A'
+    	},
+    	{
+    		id: 'baseB',
+    		area: 'B',
+	    		col: 19,
+	    		row: 8,
+    		color: areaMeta.B.color,
+    		expects: 'C'
+    	}
+    ];
+
+    const initialBlocks = {
+	    A: { col: 2, row: 3 },
+	    C: { col: 11, row: 8 },
+	    B: { col: 17, row: 10 }
+    };
+
+    const blocks = [
+    	{
+    		id: 'A',
+    		originArea: 'A',
+    		targetBaseId: 'baseC',
+    		col: initialBlocks.A.col,
+    		row: initialBlocks.A.row,
+    		color: areaMeta.A.color,
+    		delivered: false
+    	},
+    	{
+    		id: 'C',
+    		originArea: 'C',
+    		targetBaseId: 'baseB',
+    		col: initialBlocks.C.col,
+    		row: initialBlocks.C.row,
+    		color: areaMeta.C.color,
+    		delivered: false
+    	},
+    	{
+    		id: 'B',
+    		originArea: 'B',
+    		targetBaseId: 'baseA',
+    		col: initialBlocks.B.col,
+    		row: initialBlocks.B.row,
+    		color: areaMeta.B.color,
+    		delivered: false
+    	}
+    ];
+
+    const openCells = new Set([
+	    // Zona A (labirinto 1): superior esquerdo, com corredor ate o portal
+	    '1,2', '2,2', '3,2', '4,2', '5,2', '6,2',
+	    '1,3', '2,3', '3,3', '5,3', '6,3',
+	    '1,4', '3,4', '4,4', '5,4', '6,4',
+	    '2,5', '3,5', '5,5',
+
+	    // Zona A (labirinto 1): inferior isolado para receber bloco B
+	    '7,10', '6,10', '5,10', '4,10', '4,11', '3,11', '2,11', '5,11',
+
+	    // Zona C (labirinto 2): central com caminhos em zig-zag
+	    '8,3', '9,3', '10,3', '11,3', '12,3',
+	    '10,4', '11,4', '12,4',
+	    '10,5', '9,5', '9,6', '10,6', '11,6', '12,6', '13,6', '14,6',
+	    '10,7', '11,7', '11,8',
+	    '10,8', '10,9', '9,9', '8,9', '8,10', '9,10',
+
+	    // Zona B (labirinto 3): direita com rota de retorno longa
+	    '15,6', '16,6', '17,6', '18,6',
+	    '15,7', '17,7', '18,7',
+	    '15,8', '17,8', '18,8', '19,8',
+	    '15,9', '17,9',
+	    '15,10', '16,10', '17,10',
+
+	    // Becos sem saida por zona para aumentar dificuldade
+	    '6,5',
+	    '12,5', '12,8',
+	    '18,9', '16,7'
+    ]);
+
+    const mazeWalls = [];
+    for (let row = 0; row < ROWS; row += 1) {
+	    for (let col = 0; col < COLS; col += 1) {
+		    const key = col + ',' + row;
+		    const isBorder = row === 0 || row === ROWS - 1 || col === 0 || col === COLS - 1;
+		    if (isBorder || !openCells.has(key)) {
+			    mazeWalls.push({ col, row });
+		    }
+	    }
+    }
+
+    const wallSet = new Set(mazeWalls.map(wall => wall.col + ',' + wall.row));
+
+    let state = {
+    	botCol: startBot.col,
+    	botRow: startBot.row,
+    	carryingBlockId: null,
+		doorCtoBOpen: false,
+		doorBtoAOpen: false
+    };
+
+    function buildGrid() {
+    	board.style.setProperty('--cell-size', CELL + 'px');
+    	board.style.setProperty('--cols', COLS);
+    	board.style.setProperty('--rows', ROWS);
+
+    	const fragment = document.createDocumentFragment();
+    	for (let i = 0; i < COLS * ROWS; i += 1) {
+    		const cell = document.createElement('div');
+    		cell.className = 'grid-cell';
+    		fragment.appendChild(cell);
+    	}
+    	arenaGrid.appendChild(fragment);
+    }
+
+    function setEntityPosition(el, col, row) {
+    	el.style.transform = 'translate(' + (col * CELL) + 'px,' + (row * CELL) + 'px)';
+    }
+
+    function clampToBoard(col, row) {
+    	return {
+    		col: Math.max(0, Math.min(COLS - 1, col)),
+    		row: Math.max(0, Math.min(ROWS - 1, row))
+    	};
+    }
+
+    function isDoorCtoBCell(col, row) {
+	    return col === doorCtoBCell.col && row === doorCtoBCell.row;
+    }
+
+    function isDoorBtoACell(col, row) {
+	    return col === doorBtoACell.col && row === doorBtoACell.row;
+    }
+
+	function isPortalAtoCEntryCell(col, row) {
+	    return col === portalAtoCEntry.col && row === portalAtoCEntry.row;
+	}
+
+    function isWall(col, row) {
+	    if (!state.doorCtoBOpen && isDoorCtoBCell(col, row)) {
+	    	return true;
+	    }
+
+	    if (!state.doorBtoAOpen && isDoorBtoACell(col, row)) {
+    		return true;
+    	}
+
+    	return wallSet.has(col + ',' + row);
+    }
+
+    function isWalkable(col, row) {
+    	return col >= 0 && col < COLS && row >= 0 && row < ROWS && !isWall(col, row);
+    }
+
+    function buildMaze() {
+    	mazeLayer.innerHTML = '';
+
+    	for (const wall of mazeWalls) {
+    		const wallCell = document.createElement('div');
+    		wallCell.className = 'maze-cell';
+    		wallCell.style.transform = 'translate(' + (wall.col * CELL) + 'px,' + (wall.row * CELL) + 'px)';
+
+    		const wallVisual = document.createElement('div');
+    		wallVisual.className = 'maze-wall';
+    		wallCell.appendChild(wallVisual);
+    		mazeLayer.appendChild(wallCell);
+    	}
+
+		function renderDoorAt(door) {
+			const doorWrapper = document.createElement('div');
+			doorWrapper.className = 'maze-cell';
+			doorWrapper.style.transform = 'translate(' + (door.col * CELL) + 'px,' + (door.row * CELL) + 'px)';
+
+			const doorVisual = document.createElement('div');
+			doorVisual.className = 'maze-door';
+
+			const doorFrame = document.createElement('span');
+			doorFrame.className = 'maze-door-frame';
+
+			const leftPanel = document.createElement('span');
+			leftPanel.className = 'maze-door-panel left';
+			const rightPanel = document.createElement('span');
+			rightPanel.className = 'maze-door-panel right';
+
+			const leftDetail = document.createElement('span');
+			leftDetail.className = 'maze-door-detail';
+			const rightDetail = document.createElement('span');
+			rightDetail.className = 'maze-door-detail';
+			leftPanel.appendChild(leftDetail);
+			rightPanel.appendChild(rightDetail);
+
+			const leftHingeTop = document.createElement('span');
+			leftHingeTop.className = 'maze-door-hinge left top';
+			const leftHingeBottom = document.createElement('span');
+			leftHingeBottom.className = 'maze-door-hinge left bottom';
+			const rightHingeTop = document.createElement('span');
+			rightHingeTop.className = 'maze-door-hinge right top';
+			const rightHingeBottom = document.createElement('span');
+			rightHingeBottom.className = 'maze-door-hinge right bottom';
+
+			const handleLeft = document.createElement('span');
+			handleLeft.className = 'maze-door-handle left';
+			const handleRight = document.createElement('span');
+			handleRight.className = 'maze-door-handle right';
+
+			doorVisual.appendChild(doorFrame);
+			doorVisual.appendChild(leftPanel);
+			doorVisual.appendChild(rightPanel);
+			doorVisual.appendChild(leftHingeTop);
+			doorVisual.appendChild(leftHingeBottom);
+			doorVisual.appendChild(rightHingeTop);
+			doorVisual.appendChild(rightHingeBottom);
+			doorVisual.appendChild(handleLeft);
+			doorVisual.appendChild(handleRight);
+			doorWrapper.appendChild(doorVisual);
+			mazeLayer.appendChild(doorWrapper);
+		}
+
+		if (!state.doorCtoBOpen) {
+			renderDoorAt(doorCtoBCell);
+		}
+
+		if (!state.doorBtoAOpen) {
+			renderDoorAt(doorBtoACell);
+		}
+
+		const portalEntryCell = document.createElement('div');
+		portalEntryCell.className = 'maze-cell';
+		portalEntryCell.style.transform = 'translate(' + (portalAtoCEntry.col * CELL) + 'px,' + (portalAtoCEntry.row * CELL) + 'px)';
+		const portalEntryVisual = document.createElement('div');
+		portalEntryVisual.className = 'maze-portal';
+		portalEntryVisual.textContent = 'A->C';
+		portalEntryCell.appendChild(portalEntryVisual);
+		mazeLayer.appendChild(portalEntryCell);
+
+		const portalExitCell = document.createElement('div');
+		portalExitCell.className = 'maze-cell';
+		portalExitCell.style.transform = 'translate(' + (portalAtoCExit.col * CELL) + 'px,' + (portalAtoCExit.row * CELL) + 'px)';
+		const portalExitVisual = document.createElement('div');
+		portalExitVisual.className = 'maze-portal exit';
+		portalExitVisual.textContent = 'C';
+		portalExitCell.appendChild(portalExitVisual);
+		mazeLayer.appendChild(portalExitCell);
+    }
+
+    function renderBases() {
+    	baseLayer.innerHTML = '';
+
+    	for (const base of bases) {
+    		const baseCell = document.createElement('div');
+    		baseCell.className = 'base-cell final-base-cell';
+    		baseCell.dataset.baseId = base.id;
+    		baseCell.style.color = base.color;
+
+    		const baseVisual = document.createElement('div');
+    		baseVisual.className = 'base final-base';
+			baseVisual.style.color = base.color;
+    		baseCell.appendChild(baseVisual);
+
+			const baseLabel = document.createElement('span');
+			baseLabel.className = 'final-base-label';
+			baseLabel.textContent = 'Base ' + base.area;
+			baseCell.appendChild(baseLabel);
+
+			const baseHint = document.createElement('span');
+			baseHint.className = 'final-base-hint';
+			baseHint.textContent = 'recebe ' + base.expects;
+			baseCell.appendChild(baseHint);
+
+    		setEntityPosition(baseCell, base.col, base.row);
+    		baseLayer.appendChild(baseCell);
+    	}
+    }
+
+    function renderBlocks() {
+    	packageLayer.innerHTML = '';
+
+    	for (const block of blocks) {
+    		const blockCell = document.createElement('div');
+    		blockCell.className = 'package-cell final-package-cell';
+    		blockCell.dataset.blockId = block.id;
+    		if (block.delivered) {
+    			blockCell.classList.add('delivered');
+    		}
+
+    		const blockVisual = document.createElement('div');
+    		blockVisual.className = 'package final-package';
+    		blockVisual.style.background = 'linear-gradient(180deg, ' + block.color + ', color-mix(in srgb, ' + block.color + ' 62%, black))';
+
+			const blockLabel = document.createElement('span');
+			blockLabel.className = 'final-package-label';
+			blockLabel.textContent = block.id;
+			blockVisual.appendChild(blockLabel);
+
+    		blockCell.appendChild(blockVisual);
+    		setEntityPosition(blockCell, block.col, block.row);
+    		packageLayer.appendChild(blockCell);
+    	}
+    }
+
+    function refreshLayerPositions() {
+    	for (const blockCell of packageLayer.querySelectorAll('.final-package-cell')) {
+    		const blockId = blockCell.dataset.blockId;
+    		const block = blocks.find(item => item.id === blockId);
+    		if (block) {
+    			setEntityPosition(blockCell, block.col, block.row);
+    			blockCell.classList.toggle('delivered', block.delivered);
+    		}
+    	}
+    }
+
+    function normalizeCommand(raw) {
+    	return raw.replace(/\s+/g, '').toLowerCase();
+    }
+
+    function parseCommand(rawLine) {
+    	const cmd = normalizeCommand(rawLine);
+
+    	if (cmd === 'pegar' || cmd === 'pegar()') {
+    		return { action: 'pegar', amount: 1 };
+    	}
+
+    	if (cmd === 'largar' || cmd === 'largar()') {
+    		return { action: 'largar', amount: 1 };
+    	}
+
+    	const moveMatch = cmd.match(/^(moverdireita|moveresquerda|movercima|moverbaixo)(?:\((\d+)\))?$/);
+    	if (!moveMatch) {
+    		return null;
+    	}
+
+    	const action = moveMatch[1];
+    	const amount = moveMatch[2] ? Number(moveMatch[2]) : 1;
+    	if (!Number.isInteger(amount) || amount < 1) {
+    		return null;
+    	}
+
+    	return { action, amount };
+    }
+
+		setupPromptEditor(cmdInput, line => Boolean(parseCommand(line)));
+
+    function hideErrorPanel() {
+    	errorPanel.classList.add('hidden');
+    	errorPanelMsg.textContent = '';
+    }
+
+    function showErrorPanel(command) {
+    	errorPanelMsg.textContent = 'Comando invalido: "' + command + '". Revise e tente novamente.';
+    	errorPanel.classList.remove('hidden');
+    }
+
+    function hideDocsPanel() {
+    	docsPanel.classList.add('hidden');
+    }
+
+    function showDocsPanel() {
+    	docsPanel.classList.remove('hidden');
+    }
+
+    function hideWinPanel() {
+    	winPanel.classList.add('hidden');
+    }
+
+    function showWinPanel(executedSteps) {
+    	winSummary.textContent = 'Troca concluida em ' + executedSteps + ' comandos: A->C, C->B e B->A.';
+    	winPanel.classList.remove('hidden');
+    }
+
+    function hideFailPanel() {
+    	failPanel.classList.add('hidden');
+    }
+
+    function showFailPanel() {
+    	failPanel.classList.remove('hidden');
+    }
+
+    function wait(ms) {
+    	return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function getBaseById(baseId) {
+    	return bases.find(base => base.id === baseId) || null;
+    }
+
+    function getBlockById(blockId) {
+    	return blocks.find(block => block.id === blockId) || null;
+    }
+
+    function isBlockOnTarget(blockId, targetBaseId) {
+		const block = getBlockById(blockId);
+		const targetBase = getBaseById(targetBaseId);
+		if (!block || !targetBase) {
+			return false;
+		}
+
+		return block.delivered && block.col === targetBase.col && block.row === targetBase.row;
+    }
+
+    function isObjectiveAtoCComplete() {
+    	return isBlockOnTarget('A', 'baseC');
+    }
+
+    function isObjectiveCtoBComplete() {
+    	return isBlockOnTarget('C', 'baseB');
+    }
+
+    function isObjectiveBtoAComplete() {
+    	return isBlockOnTarget('B', 'baseA');
+    }
+
+    function getCompletedObjectivesCount() {
+		let count = 0;
+		if (isObjectiveAtoCComplete()) {
+			count += 1;
+		}
+		if (isObjectiveCtoBComplete()) {
+			count += 1;
+		}
+		if (isObjectiveBtoAComplete()) {
+			count += 1;
+		}
+		return count;
+    }
+
+    function setObjectiveDone(element, done) {
+		if (!element) {
+			return;
+		}
+
+		element.classList.toggle('done', done);
+    }
+
+    function updateObjectivesUI() {
+    	setObjectiveDone(objectiveAtoC, isObjectiveAtoCComplete());
+    	setObjectiveDone(objectiveCtoB, isObjectiveCtoBComplete());
+    	setObjectiveDone(objectiveBtoA, isObjectiveBtoAComplete());
+
+		const doorCtoBStatus = state.doorCtoBOpen ? 'ABERTA' : 'FECHADA';
+		const doorBtoAStatus = state.doorBtoAOpen ? 'ABERTA' : 'FECHADA';
+		turnCounter.textContent = 'Portas: C->B ' + doorCtoBStatus + ' | B->A ' + doorBtoAStatus + '. Objetivos concluidos: ' + getCompletedObjectivesCount() + '/3';
+    }
+
+    function allObjectivesCompleted() {
+    	return isObjectiveAtoCComplete() && isObjectiveCtoBComplete() && isObjectiveBtoAComplete();
+    }
+
+    function updateDoorState() {
+	    if (!state.doorCtoBOpen && isObjectiveAtoCComplete()) {
+	    	state.doorCtoBOpen = true;
+	    	buildMaze();
+	    	statusEl.className = 'status ok';
+	    	statusEl.textContent = 'Porta C->B liberada! Agora leve o bloco C para a base B.';
+	    }
+
+	    if (!state.doorBtoAOpen && isObjectiveCtoBComplete()) {
+	    	state.doorBtoAOpen = true;
+	    	buildMaze();
+	    	statusEl.className = 'status ok';
+	    	statusEl.textContent = 'Porta B->A liberada! Agora a base A pode receber o bloco B.';
+	    }
+    }
+
+    function draw() {
+    	setEntityPosition(botCell, state.botCol, state.botRow);
+    	botCell.classList.toggle('carrying', Boolean(state.carryingBlockId));
+
+    	for (const block of blocks) {
+    		const blockCell = packageLayer.querySelector('[data-block-id="' + block.id + '"]');
+    		if (!blockCell) {
+    			continue;
+    		}
+
+			blockCell.classList.toggle('delivered', block.delivered);
+			setEntityPosition(blockCell, block.col, block.row);
+    	}
+
+		updateObjectivesUI();
+    }
+
+    function moveBot(action) {
+    	let nextCol = state.botCol;
+    	let nextRow = state.botRow;
+
+    	if (action === 'moverdireita') {
+    		nextCol += 1;
+    	} else if (action === 'moveresquerda') {
+    		nextCol -= 1;
+    	} else if (action === 'movercima') {
+    		nextRow -= 1;
+    	} else if (action === 'moverbaixo') {
+    		nextRow += 1;
+    	}
+
+		const bounded = clampToBoard(nextCol, nextRow);
+		let moved = false;
+		if (isWalkable(bounded.col, bounded.row)) {
+			state.botCol = bounded.col;
+			state.botRow = bounded.row;
+			moved = true;
+		}
+
+		if (moved && isPortalAtoCEntryCell(state.botCol, state.botRow)) {
+			state.botCol = portalAtoCExit.col;
+			state.botRow = portalAtoCExit.row;
+			statusEl.className = 'status';
+			statusEl.textContent = 'Passagem ativada: teleporte da Zona A para a Zona C.';
+		}
+
+		if (state.carryingBlockId) {
+			const carriedBlock = getBlockById(state.carryingBlockId);
+			if (carriedBlock) {
+				carriedBlock.col = state.botCol;
+				carriedBlock.row = state.botRow;
+			}
+		}
+    }
+
+    function getMovableBlockAtBot() {
+    	return blocks.find(block => {
+			return !block.delivered && block.col === state.botCol && block.row === state.botRow;
+		}) || null;
+    }
+
+    function pickBlock() {
+    	if (state.carryingBlockId) {
+    		return;
+    	}
+
+    	const block = getMovableBlockAtBot();
+    	if (block) {
+    		state.carryingBlockId = block.id;
+    	}
+    }
+
+    function dropBlock() {
+    	if (!state.carryingBlockId) {
+    		return;
+    	}
+
+		const carriedBlock = getBlockById(state.carryingBlockId);
+		if (!carriedBlock) {
+			state.carryingBlockId = null;
+			return;
+		}
+
+		carriedBlock.col = state.botCol;
+		carriedBlock.row = state.botRow;
+
+		const targetBase = getBaseById(carriedBlock.targetBaseId);
+		carriedBlock.delivered = Boolean(targetBase && carriedBlock.col === targetBase.col && carriedBlock.row === targetBase.row);
+		state.carryingBlockId = null;
+
+		updateDoorState();
+    }
+
+    function resetBlocks() {
+    	for (const block of blocks) {
+			const initial = initialBlocks[block.id];
+			block.col = initial.col;
+			block.row = initial.row;
+			block.delivered = false;
+		}
+    }
+
+    function applyAction(action) {
+    	if (action === 'pegar') {
+			pickBlock();
+			return;
+		}
+
+		if (action === 'largar') {
+			dropBlock();
+			return;
+		}
+
+		moveBot(action);
+    }
+
+    function resetLesson() {
+    	hideErrorPanel();
+    	hideDocsPanel();
+    	hideWinPanel();
+    	hideFailPanel();
+
+		state = {
+			botCol: startBot.col,
+			botRow: startBot.row,
+			carryingBlockId: null,
+			doorCtoBOpen: false,
+			doorBtoAOpen: false
+		};
+
+		resetBlocks();
+		renderBlocks();
+		renderBases();
+		buildMaze();
+		refreshLayerPositions();
+		draw();
+
+		statusEl.className = 'status';
+		statusEl.textContent = 'Use a passagem A->C por teleporte. Sequencia: A->C abre C->B, C->B abre B->A.';
+    }
+
+    async function executeCommands() {
+    	hideErrorPanel();
+    	hideWinPanel();
+    	hideFailPanel();
+
+		const lines = cmdInput.value
+			.split('\n')
+			.map(line => line.trim())
+			.filter(Boolean);
+
+		if (!lines.length) {
+			statusEl.className = 'status err';
+			statusEl.textContent = 'Digite ao menos um comando.';
+			return;
+		}
+
+		runBtn.disabled = true;
+		resetBtn.disabled = true;
+		statusEl.className = 'status';
+		statusEl.textContent = 'Executando a fase final...';
+		let executedSteps = 0;
+
+		const parsedLines = [];
+		for (const line of lines) {
+			const parsed = parseCommand(line);
+			if (!parsed) {
+				runBtn.disabled = false;
+				resetBtn.disabled = false;
+				statusEl.className = 'status err';
+				statusEl.textContent = 'Execucao cancelada: ha comando invalido no prompt.';
+				showErrorPanel(line);
+				return;
+			}
+			parsedLines.push(parsed);
+		}
+
+		for (const parsed of parsedLines) {
+			if (allObjectivesCompleted()) {
+				break;
+			}
+
+			if (parsed.action === 'pegar' || parsed.action === 'largar') {
+				applyAction(parsed.action);
+				executedSteps += 1;
+				draw();
+				await wait(220);
+				continue;
+			}
+
+			for (let step = 0; step < parsed.amount; step += 1) {
+				if (allObjectivesCompleted()) {
+					break;
+				}
+
+				applyAction(parsed.action);
+				executedSteps += 1;
+				draw();
+				await wait(200);
+			}
+		}
+
+		runBtn.disabled = false;
+		resetBtn.disabled = false;
+
+		if (allObjectivesCompleted()) {
+			statusEl.className = 'status ok';
+			statusEl.textContent = 'Parabens! Voce concluiu a troca completa da fase final.';
+			markLessonAsCompleted(6);
+			showWinPanel(executedSteps);
+			return;
+		}
+
+		resetLesson();
+		statusEl.className = 'status err';
+		statusEl.textContent = 'Falha na rota: a fase foi resetada para nova tentativa.';
+		showFailPanel();
+    }
+
+    function startPractice() {
+    	tutorialPanel.classList.add('hidden');
+    	practicePanel.classList.remove('hidden');
+    	resetLesson();
+    }
+
+    runBtn.addEventListener('click', executeCommands);
+    resetBtn.addEventListener('click', resetLesson);
+    docsBtn.addEventListener('click', showDocsPanel);
+    errorPanelClose.addEventListener('click', hideErrorPanel);
+    docsPanelClose.addEventListener('click', hideDocsPanel);
+    failPanelOk.addEventListener('click', hideFailPanel);
+    startPracticeBtn.addEventListener('click', startPractice);
+
+    buildGrid();
+    buildMaze();
+    renderBases();
+    renderBlocks();
+    resetLesson();
+
+    })();
+    return;
+  }
 })();
+
 

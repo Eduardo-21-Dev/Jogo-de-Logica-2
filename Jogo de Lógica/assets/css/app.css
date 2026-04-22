@@ -1126,6 +1126,33 @@ button {
   left: 2px;
 }
 
+.maze-portal {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  border: 1px solid #0284c7;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(186, 230, 253, 0.9) 0%, rgba(186, 230, 253, 0) 44%),
+    linear-gradient(160deg, #0ea5e9, #0369a1);
+  color: #e0f2fe;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  display: grid;
+  place-items: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  box-shadow: inset 0 0 0 1px rgba(224, 242, 254, 0.35), 0 0 10px rgba(14, 165, 233, 0.4);
+}
+
+.maze-portal.exit {
+  border-color: #10b981;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(209, 250, 229, 0.92) 0%, rgba(209, 250, 229, 0) 44%),
+    linear-gradient(160deg, #34d399, #059669);
+  color: #ecfdf5;
+  box-shadow: inset 0 0 0 1px rgba(236, 253, 245, 0.35), 0 0 10px rgba(16, 185, 129, 0.35);
+}
+
 .maze-door-opening .maze-door-panel.left {
   animation: mazeDoorOpenLeft 0.75s ease forwards;
 }
@@ -1174,6 +1201,117 @@ button {
   height: 100%;
   border-radius: 8px;
   background: linear-gradient(180deg, #ef4444, #b91c1c);
+}
+
+.phase-objectives {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border: 1px solid #d7e2f3;
+  border-radius: 10px;
+  background: #f8fbff;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+.phase-objective {
+  font-size: 0.84rem;
+  color: #334155;
+  font-weight: 600;
+  padding-left: 20px;
+  position: relative;
+}
+
+.phase-objective::before {
+  content: '○';
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #94a3b8;
+  font-weight: 900;
+}
+
+.phase-objective.done {
+  color: #166534;
+}
+
+.phase-objective.done::before {
+  content: '✓';
+  color: #16a34a;
+}
+
+.docs-panel-tip {
+  margin: 10px 0 0;
+  font-size: 0.84rem;
+  color: #0f3d4a;
+  font-weight: 700;
+}
+
+.final-base-cell {
+  overflow: visible;
+  z-index: 3;
+}
+
+.final-base {
+  border-width: 3px;
+  border-style: solid;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85) inset;
+}
+
+.final-base-label {
+  position: absolute;
+  left: -10px;
+  top: -18px;
+  min-width: 58px;
+  text-align: center;
+  font-size: 0.66rem;
+  font-weight: 800;
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  padding: 1px 6px;
+}
+
+.final-base-hint {
+  position: absolute;
+  left: -8px;
+  top: calc(100% - 2px);
+  min-width: 56px;
+  text-align: center;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #475569;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #dbe3f2;
+  border-radius: 999px;
+  padding: 1px 6px;
+}
+
+.final-package-cell {
+  z-index: 4;
+}
+
+.final-package {
+  position: relative;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.3);
+}
+
+.final-package-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #f8fafc;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.45);
+}
+
+.final-package-cell.delivered .final-package {
+  border-color: #fef3c7;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.45), 0 0 22px rgba(34, 197, 94, 0.35);
 }
 
 .win-panel,

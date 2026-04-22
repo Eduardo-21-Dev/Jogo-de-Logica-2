@@ -19,3 +19,18 @@
 - Implementação de uma porta 2D em CSS no labirinto (não mais bloco), com animação de abertura.
 - Ajuste de comportamento da porta para abrir apenas quando o jogador encosta nela após destravar.
 - Refinos de estilo no `app.css` para suportar o novo componente visual da porta e suas animações.
+
+## Atualizações recentes (22/04/2026)
+
+- Recriação da página `pagina6.html` como fase final do jogo.
+- Novo desafio final baseado em troca de blocos: `A -> C`, `C -> B` e `B -> A`, mantendo a conclusão apenas com os 3 objetivos completos.
+- Redesenho da fase final para 3 zonas separadas (`Zona A`, `Zona C` e `Zona B`), com labirintos distintos por zona.
+- Implementação de passagem especial `A -> C` com teleporte do jogador para a zona central, sem alterar os objetivos de entrega.
+- Implementação de cadeia de portas na fase final:
+	- Porta `C -> B` abre somente após a entrega `A -> C`.
+	- Porta `B -> A` abre somente após a entrega `C -> B`.
+- Aumento da complexidade do labirinto final (mais linhas, corredores mais estreitos, isolamento de blocos/bases e menos espaço livre).
+- Atualização do card da fase 6 na home para refletir o novo tema de labirinto final.
+- Ajuste da navegação da `pagina5.html` para encaminhar corretamente para `pagina6.html` após vitória.
+- Correção de travamento de movimentação na fase 5 após abertura de porta, evitando perda por consumo indevido de comandos.
+- Ampliação dos estilos em `app.css` para suportar elementos da fase final (objetivos, blocos/bases especiais e portal).

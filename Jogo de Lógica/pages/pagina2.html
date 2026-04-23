@@ -13,7 +13,7 @@
 		</div>
 	</header>
 	<main class="game-shell">
-		<h1 class="title">Licão 2: colete as 4 moedas com comandos</h1>
+		<h1 class="title">Licão 2: colete as 4 moedas com comandos (10 variacoes)</h1>
 
 		<section class="layout">
 			<article class="panel">
@@ -28,8 +28,10 @@ moverBaixo</textarea>
 					<button class="btn-reset" id="resetBtn" type="button">Resetar</button>
 				</div>
 				<button class="btn-docs" id="docsBtn" type="button">Docs</button>
+				<button class="btn-docs" id="devVariationBtn" type="button">DEV: Proxima variacao</button>
+				<p id="devVariationInfo" class="chip-counter">DEV: variacao atual 1/10</p>
 
-				<p id="status" class="status">Colete todas as 4 moedas para concluir.</p>
+				<p id="status" class="status">Colete todas as 4 moedas para concluir. A variacao e sorteada ao iniciar a licao.</p>
 				<p id="chipCounter" class="chip-counter">Moedas coletadas: 0/4</p>
 
 				<div id="errorPanel" class="error-panel hidden" role="alert" aria-live="assertive">
@@ -52,7 +54,7 @@ moverBaixo</textarea>
 
 			<article class="panel arena-wrap">
 				<h2>Area do jogo</h2>
-				<p class="arena-info">O boneco comeca no centro. Passe pelas moedas douradas para coletar.</p>
+				<p class="arena-info">O boneco comeca no centro. O mapa nao muda e a variacao de moedas e sorteada no inicio da licao.</p>
 
 				<div class="arena" id="arena">
 					<div class="board" id="board">
@@ -68,6 +70,7 @@ moverBaixo</textarea>
 
 		<div id="winPanel" class="win-panel hidden" role="dialog" aria-live="assertive" aria-label="Licao 2 concluida">
 			<div class="win-card">
+				<span class="win-icon" aria-hidden="true">🏆</span>
 				<p class="win-eyebrow">Licao 2</p>
 				<h2 class="win-title">Fase concluida!</h2>
 				<p id="winSummary" class="win-summary">Voce coletou as 4 moedas.</p>

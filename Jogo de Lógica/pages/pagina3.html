@@ -13,13 +13,14 @@
 		</div>
 	</header>
 	<main class="game-shell">
-		<h1 class="title">Licão 3: carregar caixa com pegar()</h1>
+		<h1 class="title">Licão 3: carregar caixa com pegar() (10 variacoes)</h1>
 
 		<section id="tutorialPanel" class="tutorial-panel">
 			<p class="tutorial-tag">Tutorial antes da pratica</p>
 			<h2>Novas funcoes: pegar() e largar()</h2>
 			<p>
 				Nesta licao, voce precisa encostar na caixa, usar pegar(), levar ate o alvo e usar largar() em cima do destino.
+				A cada inicio da licao, uma variacao escolhe novas posicoes para jogador, caixa e base alvo.
 			</p>
 			<div class="tutorial-box">
 				<p>Fluxo recomendado:</p>
@@ -58,8 +59,10 @@ largar()</textarea>
 					<button class="btn-reset" id="resetBtn" type="button">Resetar</button>
 				</div>
 				<button class="btn-docs" id="docsBtn" type="button">Docs</button>
+				<button class="btn-docs" id="devVariationBtn" type="button">DEV: Proxima variacao</button>
+				<p id="devVariationInfo" class="chip-counter">DEV: variacao atual 1/10</p>
 
-				<p id="status" class="status">Objetivo: pegar a caixa e largar em cima do destino.</p>
+				<p id="status" class="status">Objetivo: pegar a caixa e largar em cima do destino. A variacao e sorteada no inicio da licao.</p>
 
 				<div id="errorPanel" class="error-panel hidden" role="alert" aria-live="assertive">
 					<p class="error-panel-title">Comando invalido</p>
@@ -84,7 +87,7 @@ largar()</textarea>
 
 			<article class="panel arena-wrap">
 				<h2>Area do desafio</h2>
-				<p class="arena-info">A caixa marrom deve terminar dentro da area laranja.</p>
+				<p class="arena-info">A caixa marrom deve terminar dentro da area laranja. Jogador, caixa e base mudam entre 10 variacoes.</p>
 
 				<div class="arena" id="arena">
 					<div class="board" id="board">
@@ -105,6 +108,7 @@ largar()</textarea>
 
 		<div id="winPanel" class="win-panel hidden" role="dialog" aria-live="assertive" aria-label="Licao 5 concluida">
 			<div class="win-card">
+				<span class="win-icon" aria-hidden="true">🏆</span>
 				<p class="win-eyebrow">Licao 5</p>
 				<h2 class="win-title">Fase concluida!</h2>
 				<p id="winSummary" class="win-summary">Voce usou pegar() e largar() corretamente.</p>

@@ -84,11 +84,19 @@ largar()</textarea>
 				<p class="arena-info">Cada cor tem sua base especifica.</p>
 
 				<div class="arena" id="arena">
-					<div class="board" id="board">
+					<div class="board" id="board" style="--cell-size:52px;--cols:11;--rows:9;width:572px;height:468px;">
 						<div class="arena-grid" id="arenaGrid"></div>
-						<div class="base-layer" id="baseLayer" aria-hidden="true"></div>
-						<div class="package-layer" id="packageLayer" aria-hidden="true"></div>
-						<div class="entity-cell" id="botCell" aria-label="Boneco">
+						<div class="base-layer" id="baseLayer" aria-hidden="true">
+							<div class="base-cell" data-base-id="red" style="transform: translate(416px,52px);"><div class="base" style="color:#ef4444;background:rgba(239,68,68,0.14);"></div></div>
+							<div class="base-cell" data-base-id="blue" style="transform: translate(416px,156px);"><div class="base" style="color:#3b82f6;background:rgba(59,130,246,0.14);"></div></div>
+							<div class="base-cell" data-base-id="green" style="transform: translate(416px,260px);"><div class="base" style="color:#22c55e;background:rgba(34,197,94,0.14);"></div></div>
+						</div>
+						<div class="package-layer" id="packageLayer" aria-hidden="true">
+							<div class="package-cell" data-package-id="red" style="transform: translate(104px,312px);"><div class="package" style="background:linear-gradient(180deg, #ef4444, #b91c1c);"></div></div>
+							<div class="package-cell" data-package-id="blue" style="transform: translate(208px,208px);"><div class="package" style="background:linear-gradient(180deg, #3b82f6, #1d4ed8);"></div></div>
+							<div class="package-cell" data-package-id="green" style="transform: translate(312px,104px);"><div class="package" style="background:linear-gradient(180deg, #22c55e, #15803d);"></div></div>
+						</div>
+						<div class="entity-cell" id="botCell" aria-label="Boneco" style="transform: translate(52px,364px);">
 							<div class="bot"></div>
 						</div>
 					</div>
@@ -98,6 +106,7 @@ largar()</textarea>
 
 		<div id="winPanel" class="win-panel hidden" role="dialog" aria-live="assertive" aria-label="Licao 6 concluida">
 			<div class="win-card">
+				<span class="win-icon" aria-hidden="true">🏆</span>
 				<p class="win-eyebrow">Licao 6</p>
 				<h2 class="win-title">Fase concluida!</h2>
 				<p id="winSummary" class="win-summary">Voce entregou todos os pacotes corretamente.</p>
@@ -124,5 +133,30 @@ largar()</textarea>
 	</main>
 
 	<script src="../assets/backend/app.js"></script>
+	<script>
+	(function () {
+		const button = document.getElementById('startPracticeBtn');
+		const tutorialPanel = document.getElementById('tutorialPanel');
+		const practicePanel = document.getElementById('practicePanel');
+		const resetButton = document.getElementById('resetBtn');
+
+		if (!button || !tutorialPanel || !practicePanel) {
+			return;
+		}
+
+		function openPracticeArea(event) {
+			event.preventDefault();
+			event.stopImmediatePropagation();
+			tutorialPanel.classList.add('hidden');
+			practicePanel.classList.remove('hidden');
+			if (resetButton) {
+				resetButton.click();
+			}
+			practicePanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		}
+
+		button.addEventListener('click', openPracticeArea, true);
+	})();
+	</script>
 </body>
 </html>

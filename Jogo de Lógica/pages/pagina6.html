@@ -53,6 +53,8 @@ largar()</textarea>
 					<button class="btn-reset" id="resetBtn" type="button">Resetar</button>
 				</div>
 				<button class="btn-docs" id="docsBtn" type="button">Docs</button>
+				<button class="btn-docs" id="devVariationBtn" type="button">DEV: Proxima variacao</button>
+				<p id="devVariationInfo" class="chip-counter">DEV: variacao atual 1/6</p>
 
 				<p id="status" class="status">Objetivo: concluir a troca A->C, C->B e B->A para vencer a fase final.</p>
 				<p id="turnCounter" class="turn-counter">Portas: C->B FECHADA | B->A FECHADA. Objetivos concluidos: 0/3</p>
@@ -105,6 +107,7 @@ largar()</textarea>
 
 		<div id="winPanel" class="win-panel hidden" role="dialog" aria-live="assertive" aria-label="Licao 6 concluida">
 			<div class="win-card">
+				<span class="win-icon" aria-hidden="true">🏆</span>
 				<p class="win-eyebrow">Licao 6</p>
 				<h2 class="win-title">Fase final concluida!</h2>
 				<p id="winSummary" class="win-summary">Voce concluiu a troca completa dos blocos no labirinto.</p>

@@ -805,7 +805,7 @@ button {
 
 .arena-wrap {
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto;
   gap: 8px;
 }
 
@@ -814,15 +814,20 @@ button {
   border-radius: 12px;
   background: #f8faff;
   min-height: 430px;
-  overflow: auto;
-  display: grid;
-  place-items: center;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 10px 0 14px;
 }
 
 .board {
   position: relative;
   width: calc(var(--cols) * var(--cell-size));
   height: calc(var(--rows) * var(--cell-size));
+  background: linear-gradient(180deg, #f7fbff, #edf4ff);
+  border: 1px solid #c7d6ea;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
 }
 
 .arena-grid,
@@ -1126,31 +1131,84 @@ button {
   left: 2px;
 }
 
+@keyframes portalGlow {
+  0%, 100% {
+    box-shadow: 0 0 6px 2px rgba(139, 92, 246, 0.55), inset 0 0 8px rgba(196, 181, 253, 0.18);
+  }
+  50% {
+    box-shadow: 0 0 22px 8px rgba(139, 92, 246, 0.85), inset 0 0 14px rgba(196, 181, 253, 0.32);
+  }
+}
+
+@keyframes portalGlowExit {
+  0%, 100% {
+    box-shadow: 0 0 6px 2px rgba(16, 185, 129, 0.55), inset 0 0 8px rgba(167, 243, 208, 0.18);
+  }
+  50% {
+    box-shadow: 0 0 22px 8px rgba(16, 185, 129, 0.85), inset 0 0 14px rgba(167, 243, 208, 0.32);
+  }
+}
+
+@keyframes portalSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
 .maze-portal {
+  position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 8px;
-  border: 1px solid #0284c7;
+  border-radius: 50%;
+  border: 2px solid #a78bfa;
   background:
-    radial-gradient(circle at 30% 30%, rgba(186, 230, 253, 0.9) 0%, rgba(186, 230, 253, 0) 44%),
-    linear-gradient(160deg, #0ea5e9, #0369a1);
-  color: #e0f2fe;
-  font-size: 0.58rem;
-  font-weight: 900;
-  letter-spacing: 0.2px;
+    radial-gradient(circle at 38% 32%, rgba(237, 233, 254, 0.85) 0%, transparent 42%),
+    linear-gradient(145deg, #6d28d9 0%, #4c1d95 60%, #2e1065 100%);
   display: grid;
   place-items: center;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-  box-shadow: inset 0 0 0 1px rgba(224, 242, 254, 0.35), 0 0 10px rgba(14, 165, 233, 0.4);
+  animation: portalGlow 1.8s ease-in-out infinite;
+  overflow: hidden;
+  z-index: 2;
+}
+
+/* Spinning ring inside portal entry */
+.maze-portal::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(196, 181, 253, 0.55);
+  animation: portalSpin 3.6s linear infinite;
+}
+
+.maze-portal-label {
+  position: relative;
+  z-index: 1;
+  font-size: 0.5rem;
+  font-weight: 900;
+  letter-spacing: 0.3px;
+  color: #ede9fe;
+  text-shadow: 0 0 6px rgba(139, 92, 246, 0.9);
+  line-height: 1;
+  text-align: center;
+  user-select: none;
 }
 
 .maze-portal.exit {
-  border-color: #10b981;
+  border-color: #34d399;
   background:
-    radial-gradient(circle at 30% 30%, rgba(209, 250, 229, 0.92) 0%, rgba(209, 250, 229, 0) 44%),
-    linear-gradient(160deg, #34d399, #059669);
-  color: #ecfdf5;
-  box-shadow: inset 0 0 0 1px rgba(236, 253, 245, 0.35), 0 0 10px rgba(16, 185, 129, 0.35);
+    radial-gradient(circle at 38% 32%, rgba(209, 250, 229, 0.85) 0%, transparent 42%),
+    linear-gradient(145deg, #059669 0%, #065f46 60%, #022c22 100%);
+  animation-name: portalGlowExit;
+}
+
+.maze-portal.exit::before {
+  border-color: rgba(167, 243, 208, 0.55);
+  animation-direction: reverse;
+}
+
+.maze-portal.exit .maze-portal-label {
+  color: #d1fae5;
+  text-shadow: 0 0 6px rgba(16, 185, 129, 0.9);
 }
 
 .maze-door-opening .maze-door-panel.left {
@@ -1253,9 +1311,14 @@ button {
 }
 
 .final-base {
-  border-width: 3px;
-  border-style: solid;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85) inset;
+  border-width: 2px;
+  border-style: dashed;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset,
+    0 0 12px color-mix(in srgb, currentColor 40%, transparent);
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  position: relative;
 }
 
 .final-base-label {
@@ -1309,77 +1372,168 @@ button {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.45);
 }
 
+.final-base-cell.delivered .final-package {
+  border-color: #fef3c7;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.45), 0 0 22px rgba(34, 197, 94, 0.35);
+}
+
+.final-package {
+  position: relative;
+  border: 2px solid rgba(255, 255, 255, 0.38);
+  border-radius: 10px;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.30),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.22),
+    0 4px 14px rgba(0, 0, 0, 0.40);
+}
+
+/* Shine overlay on block face */
+.final-package::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  background: linear-gradient(160deg,
+    rgba(255, 255, 255, 0.28) 0%,
+    rgba(255, 255, 255, 0.08) 45%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.final-package-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.45),
+    0 0 8px rgba(0, 0, 0, 0.35);
+  letter-spacing: 0.5px;
+  z-index: 1;
+}
+
 .final-package-cell.delivered .final-package {
   border-color: #fef3c7;
   box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.45), 0 0 22px rgba(34, 197, 94, 0.35);
+}
+
+/* ===== WIN / FAIL PANELS ===== */
+
+@keyframes win-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .win-panel,
 .fail-panel {
   position: fixed;
   inset: 0;
+  z-index: 200;
   display: grid;
   place-items: center;
   padding: 20px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .win-panel {
-  background: rgba(8, 15, 30, 0.58);
+  background: rgba(5, 10, 28, 0.70);
 }
 
 .fail-panel {
-  background: rgba(8, 15, 30, 0.44);
+  background: rgba(5, 10, 28, 0.60);
 }
+
+/* ---------- Cards ---------- */
 
 .win-card,
 .fail-card {
-  width: min(520px, 100%);
-  background: #fff;
-  border: 1px solid #d8e3f5;
-  border-radius: 14px;
-  padding: 18px;
+  width: min(440px, 100%);
+  background: #ffffff;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(0, 75, 150, 0.10),
+    0 24px 64px rgba(0, 8, 36, 0.42),
+    0 6px 20px rgba(0, 8, 36, 0.18);
+  animation: win-card-in 0.34s cubic-bezier(0.34, 1.26, 0.64, 1) both;
 }
 
-.win-actions {
-  margin-top: 14px;
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  flex-wrap: wrap;
+/* SENAC brand stripe */
+.win-card::before {
+  content: '';
+  display: block;
+  height: 5px;
+  background: linear-gradient(90deg,
+    #FDB913 0%,  #FDB913 20%,
+    #F37021 20%, #F37021 40%,
+    #456BB2 40%, #456BB2 60%,
+    #004A8F 60%, #004A8F 80%,
+    #1D2A40 80%, #1D2A40 100%
+  );
 }
 
-.win-letter-wrap {
-  margin-top: 14px;
-  display: flex;
-  justify-content: center;
+/* Red stripe for fail */
+.fail-card::before {
+  content: '';
+  display: block;
+  height: 5px;
+  background: linear-gradient(90deg, #b91c1c, #ef4444, #b91c1c);
 }
 
-.win-letter-image {
-  width: min(180px, 90%);
-  height: auto;
-  object-fit: contain;
+/* ---------- Win card inner ---------- */
+
+.win-card {
+  padding: 0 28px 28px;
+  text-align: center;
 }
 
-.btn-win {
-  text-decoration: none;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid #cbd5e1;
-  background: #eef2ff;
-  color: #1e293b;
-  font-weight: 700;
+.win-icon {
+  display: block;
+  font-size: 3rem;
+  line-height: 1;
+  margin: 22px 0 10px;
+  user-select: none;
 }
 
-.btn-next {
-  border: none;
-  color: #fff;
-  background: linear-gradient(90deg, #16a34a, #22c55e);
+.win-eyebrow {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--muted);
+}
+
+.win-title {
+  margin: 6px 0 0;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--dark-blue);
+  line-height: 1.15;
+}
+
+.win-summary {
+  margin: 8px 0 0;
+  font-size: 0.92rem;
+  color: var(--muted);
+  line-height: 1.55;
 }
 
 .star-rating {
   margin-top: 14px;
   font-size: 2rem;
-  letter-spacing: 8px;
+  letter-spacing: 6px;
   color: #d4dae5;
 }
 
@@ -1387,6 +1541,124 @@ button {
 .star-rating.stars-2 .star:nth-child(-n + 2),
 .star-rating.stars-3 .star:nth-child(-n + 3) {
   color: #f59e0b;
+}
+
+.win-letter-wrap {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.win-letter-image {
+  width: min(150px, 72%);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 14px rgba(0, 91, 170, 0.22));
+}
+
+.win-actions {
+  margin-top: 22px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-win {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  padding: 11px 20px;
+  border-radius: 12px;
+  border: 1.5px solid #cdd8f0;
+  background: #f0f4ff;
+  color: #1e3a6e;
+  font-weight: 700;
+  font-size: 0.91rem;
+  transition: background 0.15s, border-color 0.15s, transform 0.12s;
+}
+
+.btn-win:hover {
+  background: #dde6ff;
+  border-color: #a8bde6;
+  transform: translateY(-1px);
+}
+
+.btn-next {
+  border: none;
+  color: #fff;
+  background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+  box-shadow: 0 3px 12px rgba(34, 197, 94, 0.30);
+}
+
+.btn-next:hover {
+  background: linear-gradient(135deg, #14692e 0%, #16a34a 100%);
+  border: none;
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.40);
+}
+
+/* ---------- Fail card inner ---------- */
+
+.fail-card {
+  padding: 0 28px 28px;
+  text-align: center;
+}
+
+.fail-title {
+  margin: 22px 0 0;
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: var(--danger);
+}
+
+.fail-lead {
+  margin: 8px 0 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.fail-list {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+  color: var(--text);
+  font-weight: 600;
+  text-align: left;
+}
+
+.fail-list li {
+  padding: 6px 0;
+  border-top: 1px solid #f1f5f9;
+}
+
+.fail-list li:first-child {
+  border-top: none;
+}
+
+.fail-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.btn-fail-ok {
+  padding: 11px 36px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #b91c1c, #ef4444);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.91rem;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.12s;
+  box-shadow: 0 3px 12px rgba(220, 38, 38, 0.28);
+}
+
+.btn-fail-ok:hover {
+  background: linear-gradient(135deg, #991b1b, #dc2626);
+  transform: translateY(-1px);
 }
 
 @media (max-width: 900px) {

@@ -232,7 +232,6 @@
 
 		const preview = document.createElement('pre');
 		preview.className = 'prompt-editor-preview';
-
 		const parent = textarea.parentNode;
 		if (!parent) {
 			return;
@@ -454,6 +453,8 @@
     const resetBtn = document.getElementById('resetBtn');
     const docsBtn = document.getElementById('docsBtn');
     const statusEl = document.getElementById('status');
+	const devVariationBtn = document.getElementById('devVariationBtn');
+	const devVariationInfo = document.getElementById('devVariationInfo');
     const errorPanel = document.getElementById('errorPanel');
     const errorPanelMsg = document.getElementById('errorPanelMsg');
     const errorPanelClose = document.getElementById('errorPanelClose');
@@ -638,6 +639,9 @@
 
     	runBtn.disabled = true;
     	resetBtn.disabled = true;
+		if (devVariationBtn) {
+			devVariationBtn.disabled = true;
+		}
     	statusEl.className = 'status';
     	statusEl.textContent = 'Executando passo a passo...';
     	let executedSteps = 0;
@@ -755,6 +759,8 @@
     const resetBtn = document.getElementById('resetBtn');
     const docsBtn = document.getElementById('docsBtn');
     const statusEl = document.getElementById('status');
+	const devVariationBtn = document.getElementById('devVariationBtn');
+	const devVariationInfo = document.getElementById('devVariationInfo');
     const chipCounter = document.getElementById('chipCounter');
     const errorPanel = document.getElementById('errorPanel');
     const errorPanelMsg = document.getElementById('errorPanelMsg');
@@ -774,12 +780,21 @@
     	row: Math.floor(ROWS / 2)
     };
 
-    const chips = [
-    	{ id: 0, col: start.col - 1, row: start.row - 1 },
-    	{ id: 1, col: start.col + 1, row: start.row - 1 },
-    	{ id: 2, col: start.col - 1, row: start.row + 1 },
-    	{ id: 3, col: start.col + 1, row: start.row + 1 }
+    const chipVariations = [
+		[{ col: 4, row: 3 }, { col: 6, row: 3 }, { col: 4, row: 5 }, { col: 6, row: 5 }],
+		[{ col: 1, row: 1 }, { col: 9, row: 1 }, { col: 1, row: 7 }, { col: 9, row: 7 }],
+		[{ col: 5, row: 1 }, { col: 2, row: 4 }, { col: 8, row: 4 }, { col: 5, row: 7 }],
+		[{ col: 3, row: 2 }, { col: 7, row: 2 }, { col: 3, row: 6 }, { col: 7, row: 6 }],
+		[{ col: 2, row: 2 }, { col: 2, row: 6 }, { col: 8, row: 2 }, { col: 8, row: 6 }],
+		[{ col: 5, row: 2 }, { col: 3, row: 4 }, { col: 7, row: 4 }, { col: 5, row: 6 }],
+		[{ col: 1, row: 3 }, { col: 3, row: 1 }, { col: 7, row: 7 }, { col: 9, row: 5 }],
+		[{ col: 1, row: 5 }, { col: 3, row: 7 }, { col: 7, row: 1 }, { col: 9, row: 3 }],
+		[{ col: 2, row: 1 }, { col: 4, row: 7 }, { col: 8, row: 1 }, { col: 9, row: 6 }],
+		[{ col: 4, row: 2 }, { col: 6, row: 2 }, { col: 4, row: 6 }, { col: 6, row: 6 }]
     ];
+
+    let activeVariationIndex = -1;
+    let chips = [];
 
     let state = {
     	col: start.col,
@@ -788,6 +803,41 @@
     };
 
     const chipElements = new Map();
+
+    function buildChipsForVariation(variationIndex) {
+		return chipVariations[variationIndex].map(function (position, index) {
+			return {
+				id: index,
+				col: position.col,
+				row: position.row
+			};
+		});
+    }
+
+	function updateDevVariationInfo() {
+		if (!devVariationInfo || activeVariationIndex < 0) {
+			return;
+		}
+
+		devVariationInfo.textContent = 'DEV: variacao atual ' + (activeVariationIndex + 1) + '/10';
+	}
+
+	function applyVariationByIndex(variationIndex) {
+		activeVariationIndex = variationIndex;
+		chips = buildChipsForVariation(activeVariationIndex);
+		updateDevVariationInfo();
+	}
+
+    function selectRandomVariationOnLessonStart() {
+		const randomVariationIndex = Math.floor(Math.random() * chipVariations.length);
+		applyVariationByIndex(randomVariationIndex);
+	}
+
+	function selectNextVariationForDev() {
+		const nextVariationIndex = (activeVariationIndex + 1) % chipVariations.length;
+		applyVariationByIndex(nextVariationIndex);
+		resetLesson('DEV: variacao ' + (activeVariationIndex + 1) + '/10 selecionada para testes.');
+    }
 
     // Nota: Monta a estrutura visual necessaria para a fase.
     function buildGrid() {
@@ -885,7 +935,8 @@
 
     // Nota: Exibe o painel ou feedback correspondente desta etapa.
     function showWinPanel(executedSteps) {
-	    winSummary.textContent = 'Voce coletou as 4 moedas em ' + executedSteps + ' passos.';
+	    const variationLabel = activeVariationIndex + 1;
+	    winSummary.textContent = 'Voce coletou as 4 moedas em ' + executedSteps + ' passos na variacao ' + variationLabel + '/10.';
     	winPanel.classList.remove('hidden');
     }
 
@@ -968,9 +1019,9 @@
 
     // Nota: Executa os comandos do prompt, aplicando regras e verificando vitoria ou falha.
     async function executeCommands() {
-    	hideErrorPanel();
-    	hideWinPanel();
-    	hideFailPanel();
+		hideErrorPanel();
+		hideWinPanel();
+		hideFailPanel();
 
 		if (!livesSystem.hasLives()) {
 			statusEl.className = 'status err';
@@ -978,101 +1029,122 @@
 			return;
 		}
 
-    	const lines = cmdInput.value
-    		.split('\n')
-    		.map(line => line.trim())
-    		.filter(Boolean);
+		const lines = cmdInput.value
+			.split('\n')
+			.map(line => line.trim())
+			.filter(Boolean);
 
-    	if (!lines.length) {
-    		statusEl.className = 'status err';
-    		statusEl.textContent = 'Digite ao menos um comando.';
-    		return;
-    	}
+		if (!lines.length) {
+			statusEl.className = 'status err';
+			statusEl.textContent = 'Digite ao menos um comando.';
+			return;
+		}
 
-    	runBtn.disabled = true;
-    	resetBtn.disabled = true;
-    	statusEl.className = 'status';
-    	statusEl.textContent = 'Executando passo a passo...';
-    	let executedSteps = 0;
+		runBtn.disabled = true;
+		resetBtn.disabled = true;
+		if (devVariationBtn) {
+			devVariationBtn.disabled = true;
+		}
+		statusEl.className = 'status';
+		statusEl.textContent = 'Executando passo a passo...';
+		let executedSteps = 0;
 
-    	const invalidLine = lines.find(line => {
-    		return !parseMovementCommand(line);
-    	});
+		const invalidLine = lines.find(line => {
+			return !parseMovementCommand(line);
+		});
 
-    	if (invalidLine) {
-    		runBtn.disabled = false;
-    		resetBtn.disabled = false;
-    		statusEl.className = 'status err';
-    		statusEl.textContent = 'Execucao cancelada: ha funcao invalida no prompt.';
-    		showErrorPanel(invalidLine);
-    		return;
-    	}
+		if (invalidLine) {
+			runBtn.disabled = false;
+			resetBtn.disabled = false;
+			if (devVariationBtn) {
+				devVariationBtn.disabled = false;
+			}
+			statusEl.className = 'status err';
+			statusEl.textContent = 'Execucao cancelada: ha funcao invalida no prompt.';
+			showErrorPanel(invalidLine);
+			return;
+		}
 
-    	for (const line of lines) {
-    		const parsed = parseMovementCommand(line);
+		for (const line of lines) {
+			const parsed = parseMovementCommand(line);
 
-    		for (let step = 0; step < parsed.amount; step += 1) {
-    			if (state.collected.size === chips.length) {
-    				break;
-    			}
+			for (let step = 0; step < parsed.amount; step += 1) {
+				if (state.collected.size === chips.length) {
+					break;
+				}
 
-    			let nextCol = state.col;
-    			let nextRow = state.row;
+				let nextCol = state.col;
+				let nextRow = state.row;
 
-    			if (parsed.action === 'moverdireita') {
-    				nextCol += 1;
-    			} else if (parsed.action === 'moveresquerda') {
-    				nextCol -= 1;
-    			} else if (parsed.action === 'movercima') {
-    				nextRow -= 1;
-    			} else if (parsed.action === 'moverbaixo') {
-    				nextRow += 1;
-    			}
+				if (parsed.action === 'moverdireita') {
+					nextCol += 1;
+				} else if (parsed.action === 'moveresquerda') {
+					nextCol -= 1;
+				} else if (parsed.action === 'movercima') {
+					nextRow -= 1;
+				} else if (parsed.action === 'moverbaixo') {
+					nextRow += 1;
+				}
 
-    			const bounded = clampToBoard(nextCol, nextRow);
-    			state.col = bounded.col;
-    			state.row = bounded.row;
-    			executedSteps += 1;
-    			draw();
-    			collectChipAtCurrentPosition();
-    			await wait(240);
+				const bounded = clampToBoard(nextCol, nextRow);
+				state.col = bounded.col;
+				state.row = bounded.row;
+				executedSteps += 1;
+				draw();
+				collectChipAtCurrentPosition();
+				await wait(240);
 
-    			if (state.collected.size === chips.length) {
-    				break;
-    			}
-    		}
+				if (state.collected.size === chips.length) {
+					break;
+				}
+			}
 
-    		if (state.collected.size === chips.length) {
-    			break;
-    		}
-    	}
+			if (state.collected.size === chips.length) {
+				break;
+			}
+		}
 
-    	runBtn.disabled = false;
-    	resetBtn.disabled = false;
+		runBtn.disabled = false;
+		resetBtn.disabled = false;
+			if (devVariationBtn) {
+				devVariationBtn.disabled = false;
+			}
+		if (devVariationBtn) {
+			devVariationBtn.disabled = false;
+		}
+		if (devVariationBtn) {
+			devVariationBtn.disabled = false;
+		}
+		if (devVariationBtn) {
+			devVariationBtn.disabled = false;
+		}
+		if (devVariationBtn) {
+			devVariationBtn.disabled = false;
+		}
 
-    	if (state.collected.size === chips.length) {
-    		statusEl.className = 'status ok';
+		if (state.collected.size === chips.length) {
+			statusEl.className = 'status ok';
 	    	statusEl.textContent = 'Perfeito! Voce coletou todas as moedas.';
 	    	markLessonAsCompleted(2);
-    		showWinPanel(executedSteps);
-    		return;
-    	}
+			showWinPanel(executedSteps);
+			return;
+		}
 
-    	state = {
-    		col: start.col,
-    		row: start.row,
-    		collected: new Set()
-    	};
-    	createChips();
-    	draw();
-    	collectChipAtCurrentPosition();
-    	updateChipCounter();
+		state = {
+			col: start.col,
+			row: start.row,
+			collected: new Set()
+		};
+		createChips();
+		draw();
+		collectChipAtCurrentPosition();
+		updateChipCounter();
 		livesSystem.registerFailure('Falha na rota: a fase foi resetada para nova tentativa.');
-    	showFailPanel();
+		showFailPanel();
     }
 
     // Nota: Restaura estados e elementos para reiniciar a tentativa atual.
-    function resetLesson() {
+    function resetLesson(customStatusText) {
     	hideErrorPanel();
     	hideDocsPanel();
     	hideWinPanel();
@@ -1087,17 +1159,24 @@
     	collectChipAtCurrentPosition();
     	updateChipCounter();
     	statusEl.className = 'status';
-    	statusEl.textContent = 'Posicao resetada. Boneco no centro.';
+		statusEl.textContent = customStatusText || ('Variacao ' + (activeVariationIndex + 1) + '/10 mantida. Boneco no centro.');
+		updateDevVariationInfo();
     }
 
     runBtn.addEventListener('click', executeCommands);
-    resetBtn.addEventListener('click', resetLesson);
+	resetBtn.addEventListener('click', function () {
+		resetLesson();
+	});
     docsBtn.addEventListener('click', showDocsPanel);
+	if (devVariationBtn) {
+		devVariationBtn.addEventListener('click', selectNextVariationForDev);
+	}
     errorPanelClose.addEventListener('click', hideErrorPanel);
     docsPanelClose.addEventListener('click', hideDocsPanel);
     failPanelOk.addEventListener('click', hideFailPanel);
 
-    buildGrid();
+	selectRandomVariationOnLessonStart();
+	buildGrid();
     resetLesson();
     })();
     return;
@@ -1277,8 +1356,11 @@
     		return;
     	}
 
-    	runBtn.disabled = true;
-    	resetBtn.disabled = true;
+		runBtn.disabled = true;
+		resetBtn.disabled = true;
+		if (devVariationBtn) {
+			devVariationBtn.disabled = true;
+		}
     	statusEl.className = 'status';
     	statusEl.textContent = 'Executando passo a passo...';
     	let executedSteps = 0;
@@ -1290,6 +1372,9 @@
     		if (!parsed) {
     			runBtn.disabled = false;
     			resetBtn.disabled = false;
+				if (devVariationBtn) {
+					devVariationBtn.disabled = false;
+				}
     			statusEl.className = 'status err';
     			statusEl.textContent = 'Execucao cancelada: ha comando invalido no prompt.';
     			showErrorPanel(line);
@@ -1411,6 +1496,8 @@
     const resetBtn = document.getElementById('resetBtn');
     const docsBtn = document.getElementById('docsBtn');
     const statusEl = document.getElementById('status');
+	const devVariationBtn = document.getElementById('devVariationBtn');
+	const devVariationInfo = document.getElementById('devVariationInfo');
     const errorPanel = document.getElementById('errorPanel');
     const errorPanelMsg = document.getElementById('errorPanelMsg');
     const errorPanelClose = document.getElementById('errorPanelClose');
@@ -1783,6 +1870,9 @@
 
     	runBtn.disabled = true;
     	resetBtn.disabled = true;
+		if (devVariationBtn) {
+			devVariationBtn.disabled = true;
+		}
     	statusEl.className = 'status';
     	statusEl.textContent = 'Executando no labirinto...';
     	let executedSteps = 0;
@@ -1791,9 +1881,12 @@
     	const parsedLines = [];
     	for (const line of lines) {
     		const parsed = parseMovementCommand(line);
-    		if (!parsed) {
-    			runBtn.disabled = false;
-    			resetBtn.disabled = false;
+			if (!parsed) {
+				runBtn.disabled = false;
+				resetBtn.disabled = false;
+				if (devVariationBtn) {
+					devVariationBtn.disabled = false;
+				}
     			statusEl.className = 'status err';
     			statusEl.textContent = 'Execucao cancelada: ha comando invalido no prompt.';
     			showErrorPanel(line);
@@ -1861,8 +1954,13 @@
     }
 
     runBtn.addEventListener('click', executeCommands);
-    resetBtn.addEventListener('click', resetLesson);
+    resetBtn.addEventListener('click', function () {
+		resetLesson();
+	});
     docsBtn.addEventListener('click', showDocsPanel);
+	if (devVariationBtn) {
+		devVariationBtn.addEventListener('click', selectNextVariationForDev);
+	}
     errorPanelClose.addEventListener('click', hideErrorPanel);
     docsPanelClose.addEventListener('click', hideDocsPanel);
     failPanelOk.addEventListener('click', hideFailPanel);
@@ -1900,6 +1998,8 @@
     const resetBtn = document.getElementById('resetBtn');
     const docsBtn = document.getElementById('docsBtn');
     const statusEl = document.getElementById('status');
+	const devVariationBtn = document.getElementById('devVariationBtn');
+	const devVariationInfo = document.getElementById('devVariationInfo');
     const errorPanel = document.getElementById('errorPanel');
     const errorPanelMsg = document.getElementById('errorPanelMsg');
     const errorPanelClose = document.getElementById('errorPanelClose');
@@ -1913,20 +2013,66 @@
 		setupWinPanelLetter(winPanel);
 		const livesSystem = setupLessonLives(3, statusEl, runBtn, failPanel);
 
-    const startBot = { col: 1, row: ROWS - 2 };
-    const startBox = { col: 3, row: ROWS - 4 };
-    const target = { col: COLS - 2, row: 1 };
+    const lessonVariations = [
+		{ startBot: { col: 1, row: 7 }, startBox: { col: 3, row: 5 }, target: { col: 9, row: 1 } },
+		{ startBot: { col: 1, row: 6 }, startBox: { col: 2, row: 3 }, target: { col: 8, row: 1 } },
+		{ startBot: { col: 2, row: 7 }, startBox: { col: 4, row: 4 }, target: { col: 9, row: 2 } },
+		{ startBot: { col: 1, row: 5 }, startBox: { col: 5, row: 6 }, target: { col: 8, row: 2 } },
+		{ startBot: { col: 3, row: 7 }, startBox: { col: 2, row: 2 }, target: { col: 9, row: 3 } },
+		{ startBot: { col: 2, row: 6 }, startBox: { col: 6, row: 5 }, target: { col: 7, row: 1 } },
+		{ startBot: { col: 1, row: 7 }, startBox: { col: 4, row: 2 }, target: { col: 8, row: 4 } },
+		{ startBot: { col: 2, row: 5 }, startBox: { col: 7, row: 6 }, target: { col: 9, row: 1 } },
+		{ startBot: { col: 3, row: 6 }, startBox: { col: 5, row: 3 }, target: { col: 7, row: 2 } },
+		{ startBot: { col: 1, row: 4 }, startBox: { col: 6, row: 6 }, target: { col: 8, row: 3 } }
+    ];
 
-    let state = {
-    	botCol: startBot.col,
-    	botRow: startBot.row,
-    	boxCol: startBox.col,
-    	boxRow: startBox.row,
-    	carrying: false,
-    	delivered: false,
-    	usedPickCommand: false,
-    	usedDropCommand: false
-    };
+    let activeVariationIndex = -1;
+    let startBot = { col: 1, row: ROWS - 2 };
+    let startBox = { col: 3, row: ROWS - 4 };
+    let target = { col: COLS - 2, row: 1 };
+
+	function updateDevVariationInfo() {
+		if (!devVariationInfo || activeVariationIndex < 0) {
+			return;
+		}
+
+		devVariationInfo.textContent = 'DEV: variacao atual ' + (activeVariationIndex + 1) + '/10';
+	}
+
+	function applyVariationByIndex(variationIndex) {
+		const variation = lessonVariations[variationIndex];
+		activeVariationIndex = variationIndex;
+		startBot = { col: variation.startBot.col, row: variation.startBot.row };
+		startBox = { col: variation.startBox.col, row: variation.startBox.row };
+		target = { col: variation.target.col, row: variation.target.row };
+		updateDevVariationInfo();
+	}
+
+	function selectRandomVariationOnLessonStart() {
+		const randomVariationIndex = Math.floor(Math.random() * lessonVariations.length);
+		applyVariationByIndex(randomVariationIndex);
+	}
+
+	function selectNextVariationForDev() {
+		const nextVariationIndex = (activeVariationIndex + 1) % lessonVariations.length;
+		applyVariationByIndex(nextVariationIndex);
+		resetLesson('DEV: variacao ' + (activeVariationIndex + 1) + '/10 selecionada para testes.');
+	}
+
+	function createInitialState() {
+		return {
+			botCol: startBot.col,
+			botRow: startBot.row,
+			boxCol: startBox.col,
+			boxRow: startBox.row,
+			carrying: false,
+			delivered: false,
+			usedPickCommand: false,
+			usedDropCommand: false
+		};
+	}
+
+    let state = createInitialState();
 
     // Nota: Interpola valores para animacao suave entre dois pontos.
     function lerp(a, b, t) {
@@ -2222,7 +2368,8 @@
 
     // Nota: Exibe o painel ou feedback correspondente desta etapa.
     function showWinPanel(executedSteps) {
-    	winSummary.textContent = 'Voce concluiu em ' + executedSteps + ' passos usando pegar().';
+		const variationLabel = activeVariationIndex + 1;
+		winSummary.textContent = 'Voce concluiu em ' + executedSteps + ' passos usando pegar() na variacao ' + variationLabel + '/10.';
     	winPanel.classList.remove('hidden');
     }
 
@@ -2319,6 +2466,9 @@
 
     	runBtn.disabled = true;
     	resetBtn.disabled = true;
+		if (devVariationBtn) {
+			devVariationBtn.disabled = true;
+		}
     	statusEl.className = 'status';
     	statusEl.textContent = 'Executando passo a passo...';
     	let executedSteps = 0;
@@ -2329,6 +2479,9 @@
     		if (!parsed) {
     			runBtn.disabled = false;
     			resetBtn.disabled = false;
+				if (devVariationBtn) {
+					devVariationBtn.disabled = false;
+				}
     			statusEl.className = 'status err';
     			statusEl.textContent = 'Execucao cancelada: ha comando invalido no prompt.';
     			showErrorPanel(line);
@@ -2372,6 +2525,9 @@
 
     	runBtn.disabled = false;
     	resetBtn.disabled = false;
+		if (devVariationBtn) {
+			devVariationBtn.disabled = false;
+		}
 
     	if (state.delivered && state.usedPickCommand && state.usedDropCommand) {
     		statusEl.className = 'status ok';
@@ -2381,40 +2537,23 @@
     		return;
     	}
 
-    	state = {
-    		botCol: startBot.col,
-    		botRow: startBot.row,
-    		boxCol: startBox.col,
-    		boxRow: startBox.row,
-    		carrying: false,
-    		delivered: false,
-    		usedPickCommand: false,
-    		usedDropCommand: false
-    	};
+		state = createInitialState();
     	draw();
 		livesSystem.registerFailure('Falha na rota: a fase foi resetada para nova tentativa.');
     	showFailPanel();
     }
 
     // Nota: Restaura estados e elementos para reiniciar a tentativa atual.
-    function resetLesson() {
+    function resetLesson(customStatusText) {
     	hideErrorPanel();
     	hideDocsPanel();
     	hideWinPanel();
     	hideFailPanel();
-    	state = {
-    		botCol: startBot.col,
-    		botRow: startBot.row,
-    		boxCol: startBox.col,
-    		boxRow: startBox.row,
-    		carrying: false,
-    		delivered: false,
-    		usedPickCommand: false,
-    		usedDropCommand: false
-    	};
+		state = createInitialState();
     	draw();
     	statusEl.className = 'status';
-    	statusEl.textContent = 'Posicao resetada para nova tentativa.';
+		statusEl.textContent = customStatusText || ('Variacao ' + (activeVariationIndex + 1) + '/10 mantida. Posicao resetada para nova tentativa.');
+		updateDevVariationInfo();
     }
 
     // Nota: Troca do tutorial para a area pratica da licao.
@@ -2427,12 +2566,16 @@
     runBtn.addEventListener('click', executeCommands);
     resetBtn.addEventListener('click', resetLesson);
     docsBtn.addEventListener('click', showDocsPanel);
+	if (devVariationBtn) {
+		devVariationBtn.addEventListener('click', selectNextVariationForDev);
+	}
     errorPanelClose.addEventListener('click', hideErrorPanel);
     docsPanelClose.addEventListener('click', hideDocsPanel);
     failPanelOk.addEventListener('click', hideFailPanel);
     startPracticeBtn.addEventListener('click', startPractice);
 
-    buildGrid();
+	selectRandomVariationOnLessonStart();
+	buildGrid();
     resetLesson();
     setupDemoVideo();
 
@@ -2714,6 +2857,18 @@
     	packages[2].delivered = false;
     }
 
+	function colorToRgba(hexColor, alphaValue) {
+		const normalized = hexColor.replace('#', '');
+		const expanded = normalized.length === 3
+			? normalized.split('').map(function (char) { return char + char; }).join('')
+			: normalized;
+		const numeric = Number.parseInt(expanded, 16);
+		const red = (numeric >> 16) & 255;
+		const green = (numeric >> 8) & 255;
+		const blue = numeric & 255;
+		return 'rgba(' + red + ', ' + green + ', ' + blue + ', ' + alphaValue + ')';
+	}
+
     // Nota: Renderiza ou atualiza elementos visuais na tela com base no estado atual.
     function renderBases() {
     	baseLayer.innerHTML = '';
@@ -2726,6 +2881,9 @@
     		const baseVisual = document.createElement('div');
     		baseVisual.className = 'base';
 		baseVisual.style.color = base.color;
+		baseVisual.style.background = colorToRgba(base.color, 0.18);
+		baseVisual.style.borderColor = base.color;
+		baseVisual.style.boxShadow = 'inset 0 0 0 1px ' + colorToRgba(base.color, 0.28);
     		baseCell.appendChild(baseVisual);
     		setEntityPosition(baseCell, base.col, base.row);
     		baseLayer.appendChild(baseCell);
@@ -2745,7 +2903,9 @@
 
     		const packageVisual = document.createElement('div');
     		packageVisual.className = 'package';
-    		packageVisual.style.background = 'linear-gradient(180deg, ' + packageItem.color + ', color-mix(in srgb, ' + packageItem.color + ' 60%, black))';
+		packageVisual.style.background = 'linear-gradient(180deg, ' + packageItem.color + ', ' + packageItem.color + ')';
+		packageVisual.style.border = '2px solid ' + colorToRgba(packageItem.color, 0.9);
+		packageVisual.style.boxShadow = 'inset 0 0 0 1px rgba(255, 255, 255, 0.35), 0 4px 10px rgba(15, 23, 42, 0.12)';
     		packageCell.appendChild(packageVisual);
     		setEntityPosition(packageCell, packageItem.col, packageItem.row);
     		packageLayer.appendChild(packageCell);
@@ -2802,6 +2962,9 @@
     		if (!parsed) {
     			runBtn.disabled = false;
     			resetBtn.disabled = false;
+				if (devVariationBtn) {
+					devVariationBtn.disabled = false;
+				}
     			statusEl.className = 'status err';
     			statusEl.textContent = 'Execucao cancelada: ha comando invalido no prompt.';
     			showErrorPanel(line);
@@ -2901,11 +3064,15 @@
     	tutorialPanel.classList.add('hidden');
     	practicePanel.classList.remove('hidden');
     	resetLesson();
+		practicePanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     runBtn.addEventListener('click', executeCommands);
     resetBtn.addEventListener('click', resetLesson);
     docsBtn.addEventListener('click', showDocsPanel);
+	if (devVariationBtn) {
+		devVariationBtn.addEventListener('click', selectNextVariationForDev);
+	}
     errorPanelClose.addEventListener('click', hideErrorPanel);
     docsPanelClose.addEventListener('click', hideDocsPanel);
     failPanelOk.addEventListener('click', hideFailPanel);
@@ -2959,30 +3126,35 @@
 
 		setupWinPanelLetter(winPanel);
 
-    const startBot = { col: 1, row: ROWS - 2 };
-    const doorCell = { col: 6, row: 5 };
-    const leftPackageIds = ['red', 'blue'];
+	const devVariationBtn = document.getElementById('devVariationBtn');
+	const devVariationInfo = document.getElementById('devVariationInfo');
 
-    const bases = [
-    	{ id: 'red', col: 2, row: 1, color: '#ef4444' },
-    	{ id: 'blue', col: 4, row: 2, color: '#3b82f6' },
-    	{ id: 'green', col: 10, row: 2, color: '#22c55e' }
-    ];
+	let startBot = { col: 1, row: ROWS - 2 };
+	const defaultDoorCell = { col: 6, row: 5 };
+	let doorCell = { col: defaultDoorCell.col, row: defaultDoorCell.row };
+	const leftPackageIds = ['red', 'blue'];
 
-    const initialPackages = {
-    	red: { col: 2, row: 8 },
-    	blue: { col: 4, row: 9 },
-    	green: { col: 10, row: 8 }
-    };
+	const bases = [
+		{ id: 'red', col: 2, row: 1, color: '#ef4444' },
+		{ id: 'blue', col: 4, row: 2, color: '#3b82f6' },
+		{ id: 'green', col: 10, row: 2, color: '#22c55e' }
+	];
 
-    const packages = [
-    	{ id: 'red', col: initialPackages.red.col, row: initialPackages.red.row, color: '#ef4444', delivered: false },
-    	{ id: 'blue', col: initialPackages.blue.col, row: initialPackages.blue.row, color: '#3b82f6', delivered: false },
-    	{ id: 'green', col: initialPackages.green.col, row: initialPackages.green.row, color: '#22c55e', delivered: false }
-    ];
+	// initial package positions are mutable per variation
+	let initialPackages = {
+		red: { col: 2, row: 8 },
+		blue: { col: 4, row: 9 },
+		green: { col: 10, row: 8 }
+	};
 
-    // Nota: Corredores de 1 celula com varias bifurcacoes, deixando o mapa menos espacoso.
-    const openCells = new Set([
+	let packages = [
+		{ id: 'red', col: initialPackages.red.col, row: initialPackages.red.row, color: '#ef4444', delivered: false },
+		{ id: 'blue', col: initialPackages.blue.col, row: initialPackages.blue.row, color: '#3b82f6', delivered: false },
+		{ id: 'green', col: initialPackages.green.col, row: initialPackages.green.row, color: '#22c55e', delivered: false }
+	];
+
+	// Nota: Corredores de 1 celula com varias bifurcacoes, deixando o mapa menos espacoso.
+	const baseOpenCells = new Set([
 	    // Inicio e caixas da esquerda
 	    '1,9', '1,8', '2,8', '2,9', '3,9', '4,9',
 
@@ -3003,18 +3175,613 @@
 	    '8,3', '9,3', '8,2', '9,2'
     ]);
 
-    const mazeWalls = [];
-    for (let row = 0; row < ROWS; row += 1) {
-	    for (let col = 0; col < COLS; col += 1) {
-		    const key = col + ',' + row;
-		    const isBorder = row === 0 || row === ROWS - 1 || col === 0 || col === COLS - 1;
-		    if (isBorder || !openCells.has(key)) {
-			    mazeWalls.push({ col, row });
-		    }
-	    }
+    // runtime openCells (can be adjusted by variation)
+    let openCells = new Set(baseOpenCells);
+
+
+    let mazeWalls = [];
+    let wallSet = new Set();
+
+    function rebuildMazeWalls() {
+    	mazeWalls = [];
+    	for (let row = 0; row < ROWS; row += 1) {
+    		for (let col = 0; col < COLS; col += 1) {
+    			const key = col + ',' + row;
+   			const isBorder = row === 0 || row === ROWS - 1 || col === 0 || col === COLS - 1;
+   			if (isBorder || !openCells.has(key)) {
+   				mazeWalls.push({ col, row });
+   			}
+   		}
+    	}
+
+    	wallSet = new Set(mazeWalls.map(wall => wall.col + ',' + wall.row));
     }
 
-    const wallSet = new Set(mazeWalls.map(wall => wall.col + ',' + wall.row));
+	// Nota: Busca um caminho ignorando paredes (uso para escavar uma rota quando a variacao isola areas)
+	function findPathAny(startCol, startRow, goalCol, goalRow) {
+		const startKey = startCol + ',' + startRow;
+		const goalKey = goalCol + ',' + goalRow;
+		const visited = new Set([startKey]);
+		const prev = new Map();
+		const queue = [{ col: startCol, row: startRow }];
+
+		function neighbors(c, r) {
+			return [
+				{ col: c + 1, row: r },
+				{ col: c - 1, row: r },
+				{ col: c, row: r + 1 },
+				{ col: c, row: r - 1 }
+			];
+		}
+
+		while (queue.length) {
+			const cur = queue.shift();
+			const key = cur.col + ',' + cur.row;
+			if (key === goalKey) {
+				// reconstruct
+				const path = [];
+				let p = key;
+				while (p) {
+					const parts = p.split(',');
+					path.push({ col: Number(parts[0]), row: Number(parts[1]) });
+					p = prev.get(p);
+				}
+				path.reverse();
+				return path;
+			}
+
+			for (const n of neighbors(cur.col, cur.row)) {
+				if (n.col <= 0 || n.col >= COLS - 1 || n.row <= 0 || n.row >= ROWS - 1) {
+					continue;
+				}
+				const nk = n.col + ',' + n.row;
+				if (visited.has(nk)) continue;
+				visited.add(nk);
+				prev.set(nk, key);
+				queue.push(n);
+			}
+		}
+
+		return null;
+	}
+
+	function isReachableUsingOpenCells(fromCol, fromRow, toCol, toRow) {
+		const startKey = fromCol + ',' + fromRow;
+		const goalKey = toCol + ',' + toRow;
+		if (!openCells.has(startKey) || !openCells.has(goalKey)) return false;
+		const visited = new Set([startKey]);
+		const queue = [{ col: fromCol, row: fromRow }];
+
+		while (queue.length) {
+			const cur = queue.shift();
+			const key = cur.col + ',' + cur.row;
+			if (key === goalKey) return true;
+			const neigh = [
+				{ col: cur.col + 1, row: cur.row },
+				{ col: cur.col - 1, row: cur.row },
+				{ col: cur.col, row: cur.row + 1 },
+				{ col: cur.col, row: cur.row - 1 }
+			];
+			for (const n of neigh) {
+				const nk = n.col + ',' + n.row;
+				if (n.col <= 0 || n.col >= COLS - 1 || n.row <= 0 || n.row >= ROWS - 1) continue;
+				if (visited.has(nk)) continue;
+				if (!openCells.has(nk)) continue;
+				visited.add(nk);
+				queue.push(n);
+			}
+		}
+
+		return false;
+	}
+
+	// Garantir conectividade (escava caminhos se necessario) entre pontos importantes
+	function ensureConnectivity() {
+		const start = { col: startBot.col, row: startBot.row };
+
+		// Ensure start can reach the door
+		if (!isReachableUsingOpenCells(start.col, start.row, doorCell.col, doorCell.row)) {
+			const pathToDoor = findPathAny(start.col, start.row, doorCell.col, doorCell.row);
+			if (pathToDoor && pathToDoor.length) {
+				for (const node of pathToDoor) {
+					openCells.add(node.col + ',' + node.row);
+				}
+			}
+		}
+
+		// For each base, ensure reachability. For the green base, enforce that the route goes via the door
+		for (const b of bases) {
+			if (b.id === 'green') {
+				// carve path from door to green base if needed
+				if (!isReachableUsingOpenCells(doorCell.col, doorCell.row, b.col, b.row)) {
+					const path = findPathAny(doorCell.col, doorCell.row, b.col, b.row);
+					if (path && path.length) {
+						for (const node of path) {
+							openCells.add(node.col + ',' + node.row);
+						}
+					}
+				}
+			} else {
+				if (!isReachableUsingOpenCells(start.col, start.row, b.col, b.row)) {
+					const path = findPathAny(start.col, start.row, b.col, b.row);
+					if (path && path.length) {
+						for (const node of path) {
+							openCells.add(node.col + ',' + node.row);
+						}
+					}
+				}
+			}
+		}
+
+		// ensure each package can reach its own base; for green package ensure via door
+		for (const pkgId of Object.keys(initialPackages)) {
+			const p = initialPackages[pkgId];
+			const b = bases.find(x => x.id === pkgId) || null;
+			if (!b) continue;
+			if (b.id === 'green') {
+				// ensure package can reach door, and door to base carved already
+				if (!isReachableUsingOpenCells(p.col, p.row, doorCell.col, doorCell.row)) {
+					const path = findPathAny(p.col, p.row, doorCell.col, doorCell.row);
+					if (path && path.length) {
+						for (const node of path) {
+							openCells.add(node.col + ',' + node.row);
+						}
+					}
+				}
+			} else {
+				if (!isReachableUsingOpenCells(p.col, p.row, b.col, b.row)) {
+					const path = findPathAny(p.col, p.row, b.col, b.row);
+					if (path && path.length) {
+						for (const node of path) {
+							openCells.add(node.col + ',' + node.row);
+						}
+					}
+				}
+			}
+		}
+
+		// rebuild walls after carving
+		rebuildMazeWalls();
+	}
+
+    // Lesson variations: each variation has a fully different maze layout.
+    // Design rule: the door always blocks the ONLY path to the green base.
+    // The player can only reach the green base after delivering red and blue (which opens the door).
+    const lessonVariations = [
+    	// Variacao 1
+    	// Jogador: canto inferior esquerdo. Caixas vermelha e azul na area esquerda.
+    	// Porta na coluna 6, linha 5, bloqueando toda a passagem para a direita.
+    	// Base verde e caixa verde ficam exclusivamente acessiveis pelo lado direito (apos porta).
+    	{
+    		startBot: { col: 1, row: 9 },
+    		doorCell: { col: 6, row: 5 },
+    		bases: [
+    			{ id: 'red',   col: 2,  row: 1, color: '#ef4444' },
+    			{ id: 'blue',  col: 4,  row: 2, color: '#3b82f6' },
+    			{ id: 'green', col: 11, row: 1, color: '#22c55e' }
+    		],
+    		initialPackages: { red: { col: 3, row: 8 }, blue: { col: 2, row: 6 }, green: { col: 10, row: 8 } },
+    		overrideOpenCells: [
+    			// Lado esquerdo: area do jogador, caixas red/blue e rotas ate suas bases
+    			'1,9','2,9','3,9','4,9',
+    			'1,8','2,8','3,8',
+    			'1,7','2,7',
+    			'1,6','2,6','3,6',
+    			'1,5','2,5','3,5','4,5',
+    			'1,4','2,4',
+    			'1,3','2,3','3,3','4,3',
+    			'1,2','2,2','3,2','4,2',
+    			'2,1','3,1','4,1',
+    			// Porta (unica abertura para o lado direito)
+    			'6,5',
+    			// Lado direito: caixa verde e base verde
+    			'7,5','8,5','9,5','10,5','11,5',
+    			'10,6','10,7','10,8','10,9',
+    			'11,6','11,7',
+    			'10,4','10,3','10,2','10,1','11,1','11,2','11,3'
+    		]
+    	},
+
+    	// Variacao 2
+    	// Jogador: no meio da borda esquerda. Labirinto com corredores verticais na esquerda.
+    	// Porta na coluna 7, linha 3. Base verde no topo direito.
+    	{
+    		startBot: { col: 1, row: 7 },
+    		doorCell: { col: 7, row: 3 },
+    		bases: [
+    			{ id: 'red',   col: 3,  row: 8, color: '#ef4444' },
+    			{ id: 'blue',  col: 1,  row: 2, color: '#3b82f6' },
+    			{ id: 'green', col: 10, row: 1, color: '#22c55e' }
+    		],
+    		initialPackages: { red: { col: 4, row: 9 }, blue: { col: 2, row: 9 }, green: { col: 9, row: 7 } },
+    		overrideOpenCells: [
+    			// Lado esquerdo
+    			'1,9','2,9','3,9','4,9','5,9',
+    			'1,8','2,8','3,8','4,8',
+    			'1,7','2,7','3,7',
+    			'1,6','2,6',
+    			'1,5','2,5','3,5','4,5',
+    			'1,4','2,4','3,4',
+    			'1,3','2,3','3,3','4,3','5,3',
+    			'1,2','2,2','3,2',
+    			'1,1','2,1',
+    			// Porta
+    			'7,3',
+    			// Lado direito
+    			'8,3','9,3','10,3','11,3',
+    			'10,1','10,2','11,1','11,2',
+    			'9,4','9,5','9,6','9,7','9,8',
+    			'10,7','10,8','11,7','11,6'
+    		]
+    	},
+
+    	// Variacao 3
+    	// Jogador: canto superior esquerdo. Rota para red e blue desce e sobe.
+    	// Porta na linha 5 central (col 6). Base verde no canto inferior direito.
+    	{
+    		startBot: { col: 1, row: 1 },
+    		doorCell: { col: 6, row: 5 },
+    		bases: [
+    			{ id: 'red',   col: 4,  row: 1, color: '#ef4444' },
+    			{ id: 'blue',  col: 2,  row: 9, color: '#3b82f6' },
+    			{ id: 'green', col: 11, row: 9, color: '#22c55e' }
+    		],
+    		initialPackages: { red: { col: 3, row: 5 }, blue: { col: 4, row: 8 }, green: { col: 8, row: 8 } },
+    		overrideOpenCells: [
+    			// Lado esquerdo: rota em Z
+    			'1,1','2,1','3,1','4,1','5,1',
+    			'1,2','1,3',
+    			'1,4','2,4','3,4','4,4','5,4',
+    			'3,3','3,2',
+    			'3,5','4,5','5,5',
+    			'1,5','2,5',
+    			'1,6','1,7','1,8','1,9',
+    			'2,6','2,7','2,8','2,9',
+    			'3,8','4,8','5,8',
+    			'3,7','4,7',
+    			'3,6','4,6','5,6',
+    			// Porta
+    			'6,5',
+    			// Lado direito
+    			'7,5','8,5','9,5','10,5','11,5',
+    			'8,6','8,7','8,8','8,9',
+    			'9,8','9,9','10,9','11,9','11,8','11,7','11,6',
+    			'10,6','10,7','10,8'
+    		]
+    	},
+
+    	// Variacao 4
+    	// Jogador: coluna 3, linha inferior. Porta na col 5, linha 7 (bloqueando subida para verde).
+    	// Base verde no topo direito, caixa verde no meio direito.
+    	{
+    		startBot: { col: 3, row: 9 },
+    		doorCell: { col: 5, row: 7 },
+    		bases: [
+    			{ id: 'red',   col: 1,  row: 1, color: '#ef4444' },
+    			{ id: 'blue',  col: 3,  row: 3, color: '#3b82f6' },
+    			{ id: 'green', col: 10, row: 2, color: '#22c55e' }
+    		],
+    		initialPackages: { red: { col: 2, row: 8 }, blue: { col: 4, row: 9 }, green: { col: 11, row: 6 } },
+    		overrideOpenCells: [
+    			// Lado esquerdo/baixo
+    			'1,9','2,9','3,9','4,9',
+    			'1,8','2,8','3,8','4,8',
+    			'1,7','2,7','3,7','4,7',
+    			'1,6','2,6','3,6','4,6',
+    			'1,5','2,5','3,5','4,5',
+    			'1,4','2,4','3,4',
+    			'1,3','2,3','3,3',
+    			'1,2','2,2',
+    			'1,1','2,1',
+    			// Porta
+    			'5,7',
+    			// Lado direito
+    			'6,7','7,7','8,7','9,7','10,7','11,7',
+    			'11,6','11,5','11,4','11,3',
+    			'10,6','10,5','10,4','10,3','10,2','10,1','11,1','11,2',
+    			'9,6','9,5'
+    		]
+    	},
+
+    	// Variacao 5
+    	// Jogador: meio da esquerda. Labirinto com "S" na esquerda.
+    	// Porta na col 6, linha 8. Base verde no canto inferior direito.
+    	{
+    		startBot: { col: 1, row: 5 },
+    		doorCell: { col: 6, row: 8 },
+    		bases: [
+    			{ id: 'red',   col: 4,  row: 2, color: '#ef4444' },
+    			{ id: 'blue',  col: 1,  row: 8, color: '#3b82f6' },
+    			{ id: 'green', col: 10, row: 9, color: '#22c55e' }
+    		],
+    		initialPackages: { red: { col: 2, row: 3 }, blue: { col: 3, row: 7 }, green: { col: 9, row: 6 } },
+    		overrideOpenCells: [
+    			// Lado esquerdo
+    			'1,5','2,5','3,5',
+    			'1,4','2,4','3,4','4,4',
+    			'1,3','2,3','3,3',
+    			'1,2','2,2','3,2','4,2',
+    			'1,1','2,1','3,1','4,1',
+    			'1,6','2,6',
+    			'1,7','2,7','3,7','4,7',
+    			'1,8','2,8','3,8','4,8','5,8',
+    			'1,9','2,9','3,9',
+    			'4,5','4,6','5,6','5,5','5,4','5,3',
+    			// Porta
+    			'6,8',
+    			// Lado direito
+    			'7,8','8,8','9,8','10,8','11,8',
+    			'10,9','11,9','11,7','11,6',
+    			'9,7','9,6','9,5','9,4','9,3',
+    			'10,5','10,6','10,7','10,4','10,3'
+    		]
+    	},
+
+    	// Variacao 6
+    	// Jogador: canto direito inferior. Red e blue estao no lado DIREITO.
+    	// Porta bloqueia acesso a base verde no lado ESQUERDO (col 6, linha 4).
+    	{
+    		startBot: { col: 11, row: 9 },
+    		doorCell: { col: 6, row: 4 },
+    		bases: [
+    			{ id: 'red',   col: 9,  row: 1, color: '#ef4444' },
+    			{ id: 'blue',  col: 11, row: 3, color: '#3b82f6' },
+    			{ id: 'green', col: 2,  row: 1, color: '#22c55e' }
+    		],
+    		initialPackages: { red: { col: 10, row: 8 }, blue: { col: 11, row: 6 }, green: { col: 3, row: 8 } },
+    		overrideOpenCells: [
+    			// Lado direito: jogador, red e blue
+    			'11,9','10,9','9,9','8,9',
+    			'11,8','10,8','9,8',
+    			'11,7','10,7','9,7',
+    			'11,6','10,6','9,6',
+    			'11,5','10,5','9,5',
+    			'11,4','10,4','9,4','8,4','7,4',
+    			'11,3','10,3','9,3',
+    			'10,2','10,1','9,1','9,2',
+    			'8,3','8,2','8,1',
+    			// Porta
+    			'6,4',
+    			// Lado esquerdo (apenas acessivel via porta): caixa e base verde
+    			'5,4','4,4','3,4','2,4','1,4',
+    			'3,5','3,6','3,7','3,8',
+    			'2,5','2,6','2,7','2,8',
+    			'1,5','1,6','1,7','1,8','1,9',
+    			'2,1','2,2','2,3','1,1','1,2','1,3',
+    			'3,1','3,2','3,3','4,3','5,3'
+    		]
+    	},
+
+    	// Variacao 7
+    	// Jogador: coluna 2, linha 8. Corredor em espiral na esquerda.
+    	// Porta na col 6, linha 6. Base verde no topo direito.
+    	{
+    		startBot: { col: 2, row: 8 },
+    		doorCell: { col: 6, row: 6 },
+    		bases: [
+    			{ id: 'red',   col: 5,  row: 9, color: '#ef4444' },
+    			{ id: 'blue',  col: 1,  row: 3, color: '#3b82f6' },
+    			{ id: 'green', col: 11, row: 2, color: '#22c55e' }
+    		],
+    		initialPackages: { red: { col: 4, row: 7 }, blue: { col: 2, row: 5 }, green: { col: 9, row: 9 } },
+    		overrideOpenCells: [
+    			// Lado esquerdo (espiral)
+    			'1,9','2,9','3,9','4,9','5,9',
+    			'1,8','2,8',
+    			'1,7','2,7','3,7','4,7','5,7',
+    			'5,8',
+    			'1,6','2,6','3,6','4,6','5,6',
+    			'1,5','2,5',
+    			'1,4','2,4','3,4','4,4','5,4',
+    			'5,5',
+    			'1,3','2,3',
+    			'1,2','2,2','3,2','4,2','5,2',
+    			'1,1','2,1','3,1',
+    			// Porta
+    			'6,6',
+    			// Lado direito
+    			'7,6','8,6','9,6','10,6','11,6',
+    			'9,5','9,4','9,3','9,2','9,1',
+    			'10,7','11,7','11,5','11,4','11,3','11,2','11,1',
+    			'10,2','10,1'
+    		]
+    	},
+
+    	// Variacao 8
+    	// Jogador: linha do meio esquerda (col 1, row 5). Mapa em formato de grade.
+    	// Porta na col 7, linha 5. Base verde no canto inferior direito.
+    	{
+    		startBot: { col: 1, row: 5 },
+    		doorCell: { col: 7, row: 5 },
+    		bases: [
+    			{ id: 'red',   col: 3,  row: 1, color: '#ef4444' },
+    			{ id: 'blue',  col: 5,  row: 9, color: '#3b82f6' },
+    			{ id: 'green', col: 11, row: 8, color: '#22c55e' }
+    		],
+    		initialPackages: { red: { col: 1, row: 3 }, blue: { col: 4, row: 8 }, green: { col: 10, row: 6 } },
+    		overrideOpenCells: [
+    			// Grade esquerda (linhas impares)
+    			'1,1','2,1','3,1','4,1','5,1',
+    			'1,2',       '3,2',       '5,2',
+    			'1,3','2,3','3,3','4,3','5,3',
+    			'1,4',       '3,4',       '5,4',
+    			'1,5','2,5','3,5','4,5','5,5','6,5',
+    			'1,6',       '3,6',       '5,6',
+    			'1,7','2,7','3,7','4,7','5,7',
+    			'1,8',       '3,8',       '5,8',
+    			'1,9','2,9','3,9','4,9','5,9',
+    			// Porta
+    			'7,5',
+    			// Lado direito
+    			'8,5','9,5','10,5','11,5',
+    			'8,4','8,3','8,2','8,1','9,1','10,1','11,1',
+    			'8,6','8,7','8,8','8,9',
+    			'9,8','10,8','11,8','11,9','10,9','9,9',
+    			'9,7','10,7','11,7','11,6','10,6','9,6'
+    		]
+    	},
+
+    	// Variacao 9
+    	// Jogador: centro superior esquerdo. Labirinto com corredor em U.
+    	// Porta na col 6, linha 3. Base verde no canto direito inferior.
+    	{
+    		startBot: { col: 2, row: 2 },
+    		doorCell: { col: 6, row: 3 },
+    		bases: [
+    			{ id: 'red',   col: 4,  row: 1, color: '#ef4444' },
+    			{ id: 'blue',  col: 1,  row: 7, color: '#3b82f6' },
+    			{ id: 'green', col: 10, row: 8, color: '#22c55e' }
+    		],
+    		initialPackages: { red: { col: 3, row: 3 }, blue: { col: 2, row: 6 }, green: { col: 11, row: 9 } },
+    		overrideOpenCells: [
+    			// Corredor em U - borda esquerda
+    			'1,1','2,1','3,1','4,1','5,1',
+    			'1,2','2,2',
+    			'1,3','2,3','3,3','4,3','5,3',
+    			'5,2',
+    			'3,2','4,2',
+    			'1,4','2,4','3,4',
+    			'1,5','2,5','3,5','4,5','5,5',
+    			'1,6','2,6',
+    			'1,7','2,7','3,7','4,7','5,7',
+    			'1,8','2,8','3,8',
+    			'1,9','2,9','3,9','4,9','5,9',
+    			'4,6','5,6','5,8',
+    			// Porta
+    			'6,3',
+    			// Lado direito
+    			'7,3','8,3','9,3','10,3','11,3',
+    			'11,4','11,5','11,6','11,7','11,8','11,9',
+    			'10,9','9,9','8,9','7,9',
+    			'10,8','10,7','10,6','10,5','10,4',
+    			'9,4','8,4','7,4','7,5','8,5','9,5','9,6','9,7','9,8'
+    		]
+    	},
+
+    	// Variacao 10
+    	// Jogador: canto inferior central. Caixas red e blue espalhadas.
+    	// Porta na col 6, linha 7 (horizontal). Base verde no topo direito isolado.
+    	{
+    		startBot: { col: 5, row: 9 },
+    		doorCell: { col: 6, row: 7 },
+    		bases: [
+    			{ id: 'red',   col: 2,  row: 3, color: '#ef4444' },
+    			{ id: 'blue',  col: 5,  row: 2, color: '#3b82f6' },
+    			{ id: 'green', col: 10, row: 1, color: '#22c55e' }
+    		],
+    		initialPackages: { red: { col: 1, row: 6 }, blue: { col: 4, row: 5 }, green: { col: 11, row: 7 } },
+    		overrideOpenCells: [
+    			// Lado esquerdo
+    			'1,9','2,9','3,9','4,9','5,9',
+    			'1,8','2,8','3,8','4,8','5,8',
+    			'1,7','2,7','3,7','4,7','5,7',
+    			'1,6','2,6','3,6','4,6','5,6',
+    			'1,5','2,5','3,5','4,5','5,5',
+    			'1,4','2,4','3,4','4,4',
+    			'1,3','2,3','3,3',
+    			'1,2','2,2','3,2','4,2','5,2',
+    			'1,1','2,1','3,1','4,1','5,1',
+    			// Porta
+    			'6,7',
+    			// Lado direito
+    			'7,7','8,7','9,7','10,7','11,7',
+    			'11,8','11,9',
+    			'10,8','10,9',
+    			'11,6','11,5','11,4','11,3','11,2','11,1',
+    			'10,2','10,1','10,3','10,4','10,5','10,6',
+    			'9,6','9,5','9,4','9,3','9,2','9,1'
+    		]
+    	}
+    ];
+
+    let activeVariationIndex = -1;
+
+    function updateDevVariationInfo() {
+    	if (!devVariationInfo || activeVariationIndex < 0) {
+    		return;
+    	}
+
+    	devVariationInfo.textContent = 'DEV: variacao atual ' + (activeVariationIndex + 1) + '/' + lessonVariations.length;
+    }
+
+    function applyVariationByIndex(index) {
+    	const v = lessonVariations[index];
+   	activeVariationIndex = index;
+   	startBot = { col: v.startBot.col, row: v.startBot.row };
+
+   	// apply variation-specific bases if provided
+   	if (v.bases && Array.isArray(v.bases)) {
+   		bases.length = 0;
+   		for (const b of v.bases) {
+   			bases.push({ id: b.id, col: b.col, row: b.row, color: b.color });
+   		}
+   	}
+
+   	// copy package positions
+   	initialPackages = {
+   		red: { col: v.initialPackages.red.col, row: v.initialPackages.red.row },
+   		blue: { col: v.initialPackages.blue.col, row: v.initialPackages.blue.row },
+   		green: { col: v.initialPackages.green.col, row: v.initialPackages.green.row }
+   	};
+
+   	packages = [
+   		{ id: 'red', col: initialPackages.red.col, row: initialPackages.red.row, color: '#ef4444', delivered: false },
+   		{ id: 'blue', col: initialPackages.blue.col, row: initialPackages.blue.row, color: '#3b82f6', delivered: false },
+   		{ id: 'green', col: initialPackages.green.col, row: initialPackages.green.row, color: '#22c55e', delivered: false }
+   	];
+
+		// apply variation-specific door position (fallback to default)
+		if (v.doorCell && Number.isInteger(v.doorCell.col) && Number.isInteger(v.doorCell.row)) {
+			doorCell = { col: v.doorCell.col, row: v.doorCell.row };
+		} else {
+			doorCell = { col: defaultDoorCell.col, row: defaultDoorCell.row };
+		}
+
+   	// rebuild open cells: all variations use overrideOpenCells
+   	if (v.overrideOpenCells && Array.isArray(v.overrideOpenCells)) {
+   		openCells = new Set(v.overrideOpenCells);
+   	} else {
+   		openCells = new Set(baseOpenCells);
+   		if (v.extras) {
+   			for (const add of v.extras) {
+   				openCells.add(add);
+   			}
+   		}
+   		if (v.removes) {
+   			for (const rem of v.removes) {
+   				openCells.delete(rem);
+   			}
+   		}
+   	}
+
+   	// ensure important entity cells are open (start, door, bases, packages)
+   	openCells.add(startBot.col + ',' + startBot.row);
+   	openCells.add(doorCell.col + ',' + doorCell.row);
+   	for (const b of bases) {
+   		openCells.add(b.col + ',' + b.row);
+   	}
+   	for (const key of Object.keys(initialPackages)) {
+   		const p = initialPackages[key];
+   		openCells.add(p.col + ',' + p.row);
+   	}
+
+	// guarantee connectivity (may carve additional open cells) and update UI
+	ensureConnectivity();
+	updateDevVariationInfo();
+    }
+
+    function selectRandomVariationOnLessonStart() {
+   	const idx = Math.floor(Math.random() * lessonVariations.length);
+   	applyVariationByIndex(idx);
+    }
+
+    function selectNextVariationForDev() {
+   	const next = (activeVariationIndex + 1) % lessonVariations.length;
+   	applyVariationByIndex(next);
+  	resetLesson();
+    statusEl.className = 'status';
+    statusEl.textContent = 'DEV: variacao ' + (activeVariationIndex + 1) + '/' + lessonVariations.length + ' selecionada para testes.';
+    }
 
     let state = {
     	botCol: startBot.col,
@@ -3523,14 +4290,19 @@
     failPanelOk.addEventListener('click', hideFailPanel);
     startPracticeBtn.addEventListener('click', startPractice);
 
-    buildGrid();
-    buildMaze();
-    renderBases();
-    renderPackages();
-    if (hazardLayer) {
-    	hazardLayer.innerHTML = '';
-    }
-    resetLesson();
+	buildGrid();
+	// choose a random variation on lesson start (and allow dev cycling)
+	selectRandomVariationOnLessonStart();
+	buildMaze();
+	renderBases();
+	renderPackages();
+	if (hazardLayer) {
+		hazardLayer.innerHTML = '';
+	}
+	if (devVariationBtn) {
+		devVariationBtn.addEventListener('click', selectNextVariationForDev);
+	}
+	resetLesson();
 
     })();
     return;
@@ -3584,124 +4356,482 @@
     	B: { name: 'Area B', color: '#f97316' }
     };
 
-    const startBot = { col: 1, row: 2 };
-	const doorCtoBCell = { col: 14, row: 6 };
-	const doorBtoACell = { col: 7, row: 10 };
-	const portalAtoCEntry = { col: 6, row: 3 };
-	const portalAtoCExit = { col: 8, row: 3 };
+	// Mutable per-variation positions
+	let startBot = { col: 1, row: 2 };
+	// 3 portals: A->C (entry in A, exit in C), C->B (entry in C, exit in B), B->A (entry in B, exit in A)
+	let portalAtoCEntry = { col: 6, row: 3 };
+	let portalAtoCExit  = { col: 8, row: 3 };
+	let portalCtoBEntry = { col: 13, row: 6 };
+	let portalCtoBExit  = { col: 15, row: 6 };
+	let portalBtoAEntry = { col: 15, row: 10 };
+	let portalBtoAExit  = { col: 6, row: 10 };
 
-    const bases = [
-    	{
-    		id: 'baseA',
-    		area: 'A',
-	    		col: 4,
-	    		row: 11,
-    		color: areaMeta.A.color,
-    		expects: 'B'
-    	},
-    	{
-    		id: 'baseC',
-    		area: 'C',
-	    		col: 12,
-	    		row: 4,
-    		color: areaMeta.C.color,
-    		expects: 'A'
-    	},
-    	{
-    		id: 'baseB',
-    		area: 'B',
-	    		col: 19,
-	    		row: 8,
-    		color: areaMeta.B.color,
-    		expects: 'C'
-    	}
-    ];
+	const bases = [
+		{ id: 'baseA', area: 'A', col: 4, row: 11, color: areaMeta.A.color, expects: 'B' },
+		{ id: 'baseC', area: 'C', col: 12, row: 4, color: areaMeta.C.color, expects: 'A' },
+		{ id: 'baseB', area: 'B', col: 19, row: 8, color: areaMeta.B.color, expects: 'C' }
+	];
 
-    const initialBlocks = {
-	    A: { col: 2, row: 3 },
-	    C: { col: 11, row: 8 },
-	    B: { col: 17, row: 10 }
-    };
+	let initialBlocks = { A: { col: 2, row: 3 }, C: { col: 11, row: 8 }, B: { col: 17, row: 10 } };
 
-    const blocks = [
-    	{
-    		id: 'A',
-    		originArea: 'A',
-    		targetBaseId: 'baseC',
-    		col: initialBlocks.A.col,
-    		row: initialBlocks.A.row,
-    		color: areaMeta.A.color,
-    		delivered: false
-    	},
-    	{
-    		id: 'C',
-    		originArea: 'C',
-    		targetBaseId: 'baseB',
-    		col: initialBlocks.C.col,
-    		row: initialBlocks.C.row,
-    		color: areaMeta.C.color,
-    		delivered: false
-    	},
-    	{
-    		id: 'B',
-    		originArea: 'B',
-    		targetBaseId: 'baseA',
-    		col: initialBlocks.B.col,
-    		row: initialBlocks.B.row,
-    		color: areaMeta.B.color,
-    		delivered: false
-    	}
-    ];
+	const blocks = [
+		{ id: 'A', originArea: 'A', targetBaseId: 'baseC', col: initialBlocks.A.col, row: initialBlocks.A.row, color: areaMeta.A.color, delivered: false },
+		{ id: 'C', originArea: 'C', targetBaseId: 'baseB', col: initialBlocks.C.col, row: initialBlocks.C.row, color: areaMeta.C.color, delivered: false },
+		{ id: 'B', originArea: 'B', targetBaseId: 'baseA', col: initialBlocks.B.col, row: initialBlocks.B.row, color: areaMeta.B.color, delivered: false }
+	];
 
-    const openCells = new Set([
-	    // Zona A (labirinto 1): superior esquerdo, com corredor ate o portal
-	    '1,2', '2,2', '3,2', '4,2', '5,2', '6,2',
-	    '1,3', '2,3', '3,3', '5,3', '6,3',
-	    '1,4', '3,4', '4,4', '5,4', '6,4',
-	    '2,5', '3,5', '5,5',
+	let openCells = new Set();
+	let mazeWalls = [];
+	let wallSet = new Set();
 
-	    // Zona A (labirinto 1): inferior isolado para receber bloco B
-	    '7,10', '6,10', '5,10', '4,10', '4,11', '3,11', '2,11', '5,11',
+	function rebuildMazeWalls() {
+		mazeWalls = [];
+		for (let row = 0; row < ROWS; row += 1) {
+			for (let col = 0; col < COLS; col += 1) {
+				const key = col + ',' + row;
+				const isBorder = row === 0 || row === ROWS - 1 || col === 0 || col === COLS - 1;
+				if (isBorder || !openCells.has(key)) {
+					mazeWalls.push({ col, row });
+				}
+			}
+		}
+		wallSet = new Set(mazeWalls.map(function (wall) { return wall.col + ',' + wall.row; }));
+	}
 
-	    // Zona C (labirinto 2): central com caminhos em zig-zag
-	    '8,3', '9,3', '10,3', '11,3', '12,3',
-	    '10,4', '11,4', '12,4',
-	    '10,5', '9,5', '9,6', '10,6', '11,6', '12,6', '13,6', '14,6',
-	    '10,7', '11,7', '11,8',
-	    '10,8', '10,9', '9,9', '8,9', '8,10', '9,10',
+	function rebuildMazeWalls() {
+		mazeWalls = [];
+		for (let row = 0; row < ROWS; row += 1) {
+			for (let col = 0; col < COLS; col += 1) {
+				const key = col + ',' + row;
+				const isBorder = row === 0 || row === ROWS - 1 || col === 0 || col === COLS - 1;
+				if (isBorder || !openCells.has(key)) {
+					mazeWalls.push({ col, row });
+				}
+			}
+		}
+		wallSet = new Set(mazeWalls.map(function (wall) { return wall.col + ',' + wall.row; }));
+	}
 
-	    // Zona B (labirinto 3): direita com rota de retorno longa
-	    '15,6', '16,6', '17,6', '18,6',
-	    '15,7', '17,7', '18,7',
-	    '15,8', '17,8', '18,8', '19,8',
-	    '15,9', '17,9',
-	    '15,10', '16,10', '17,10',
+	const devVariationBtn = document.getElementById('devVariationBtn');
+	const devVariationInfo = document.getElementById('devVariationInfo');
+	let activeVariationIndex = -1;
 
-	    // Becos sem saida por zona para aumentar dificuldade
-	    '6,5',
-	    '12,5', '12,8',
-	    '18,9', '16,7'
-    ]);
+	// Zone layout: A = cols 1-6 | solid wall col 7 | C = cols 8-13 | solid wall col 14 | B = cols 15-19
+	// All inter-zone movement is via portals only. Columns 7 and 14 are ALWAYS walls.
+	// Portal A->C: entry at last col of A (col 6), exit at first col of C (col 8)
+	// Portal C->B: entry at last col of C (col 13), exit at first col of B (col 15)
+	// Portal B->A: entry somewhere in B, exit somewhere in A
+	const lessonVariations = [
+		// ──── Variacao 1 ─────────────────────────────────────────────────────────
+		// Portal A->C no topo | C->B no meio | B->A na base
+		{
+			startBot:    { col: 1, row: 2 },
+			portalAtoC:  { entry: { col: 6, row: 3 },  exit: { col: 8, row: 3 } },
+			portalCtoB:  { entry: { col: 13, row: 6 }, exit: { col: 15, row: 6 } },
+			portalBtoA:  { entry: { col: 19, row: 11 }, exit: { col: 1, row: 11 } },
+			blockA: { col: 3, row: 5 },   blockC: { col: 10, row: 8 },  blockB: { col: 17, row: 9 },
+			baseC:  { col: 12, row: 2 },  baseB:  { col: 19, row: 4 },  baseA:  { col: 3, row: 12 },
+			openCells: [
+				// Zona A
+				'1,2','2,2','3,2','4,2','5,2','6,2',
+				'1,3','1,4','1,5','1,6','1,7','1,8','1,9','1,10','1,11',
+				'2,5','3,5','4,5','5,5','6,5','6,4','6,3',
+				'2,11','3,11','4,11','5,11',
+				'2,12','3,12',
+				'3,8','3,9','3,10',
+				// Zona C
+				'8,3','9,3','10,3','11,3','12,3','12,2',
+				'8,4','8,5','8,6',
+				'9,6','10,6','11,6','12,6','13,6',
+				'10,7','10,8','10,9','10,10','10,11',
+				'9,11','11,11','12,11',
+				// Zona B
+				'15,6','16,6','17,6','18,6','19,6',
+				'19,5','19,4','18,4','17,4',
+				'19,7','19,8','19,9','19,10','19,11',
+				'15,7','15,8','15,9','15,10',
+				'16,9','17,9','17,10','17,11'
+			]
+		},
+		// ──── Variacao 2 ─────────────────────────────────────────────────────────
+		// Portal A->C na base | C->B no topo | B->A no meio
+		{
+			startBot:    { col: 2, row: 2 },
+			portalAtoC:  { entry: { col: 6, row: 11 }, exit: { col: 8, row: 11 } },
+			portalCtoB:  { entry: { col: 13, row: 3 }, exit: { col: 15, row: 3 } },
+			portalBtoA:  { entry: { col: 15, row: 8 }, exit: { col: 6, row: 8 } },
+			blockA: { col: 4, row: 10 },  blockC: { col: 11, row: 5 },  blockB: { col: 16, row: 6 },
+			baseC:  { col: 9, row: 12 },  baseB:  { col: 18, row: 12 }, baseA:  { col: 5, row: 3 },
+			openCells: [
+				// Zona A
+				'1,1','2,1','3,1','4,1','5,1',
+				'5,2','5,3','4,3',
+				'1,2','1,3','1,4','1,5','1,6','1,7','1,8',
+				'2,8','3,8','4,8','5,8','6,8',
+				'1,9','1,10','1,11',
+				'2,11','3,11','4,11','5,11','6,11',
+				'4,10','3,10','2,10',
+				// Zona C
+				'8,3','9,3','10,3','11,3','12,3','13,3',
+				'8,4','8,5','8,6',
+				'11,4','11,5','11,6','11,7','11,8','11,9','11,10','11,11',
+				'8,11','9,11','9,12','10,11',
+				'12,10','12,11','12,12',
+				// Zona B
+				'15,3','16,3','17,3','18,3',
+				'15,4','15,5','15,6','15,7','15,8',
+				'16,6','16,7','16,8','16,9','16,10','16,11','16,12',
+				'17,12','18,12','19,12',
+				'19,11','19,10','19,9','19,8','19,7','19,6','19,5','19,4','19,3'
+			]
+		},
+		// ──── Variacao 3 ─────────────────────────────────────────────────────────
+		// Portal A->C no meio | C->B na base | B->A no topo
+		{
+			startBot:    { col: 1, row: 7 },
+			portalAtoC:  { entry: { col: 6, row: 7 },  exit: { col: 8, row: 7 } },
+			portalCtoB:  { entry: { col: 13, row: 11 }, exit: { col: 15, row: 11 } },
+			portalBtoA:  { entry: { col: 19, row: 2 },  exit: { col: 1, row: 2 } },
+			blockA: { col: 5, row: 9 },   blockC: { col: 9, row: 4 },   blockB: { col: 18, row: 8 },
+			baseC:  { col: 12, row: 10 }, baseB:  { col: 15, row: 3 },  baseA:  { col: 2, row: 5 },
+			openCells: [
+				// Zona A
+				'1,2','1,3','1,4','1,5','1,6','1,7',
+				'2,5','2,7','3,7','4,7','5,7','6,7',
+				'1,8','1,9','1,10','1,11','1,12',
+				'2,9','3,9','4,9','5,9',
+				'2,12','3,12','4,12','5,12','6,12',
+				// Zona C
+				'8,7','9,7','10,7','11,7','12,7',
+				'8,6','8,5','8,4','8,3','8,2',
+				'9,4','9,3','9,2','10,2','11,2','12,2',
+				'8,8','8,9','8,10','8,11',
+				'9,11','10,11','11,11','12,11','13,11',
+				'12,9','12,10',
+				// Zona B
+				'15,3','15,4','15,5','15,6','15,7','15,8','15,9','15,10','15,11',
+				'16,3','17,3','18,3','19,3','19,2',
+				'16,11','17,11','18,11','19,11',
+				'17,7','18,7','18,8','18,9','19,9','19,10'
+			]
+		},
+		// ──── Variacao 4 ─────────────────────────────────────────────────────────
+		// Portal A->C linha 5 | C->B linha 9 | B->A linha 4
+		{
+			startBot:    { col: 1, row: 12 },
+			portalAtoC:  { entry: { col: 6, row: 5 },  exit: { col: 8, row: 5 } },
+			portalCtoB:  { entry: { col: 13, row: 9 }, exit: { col: 15, row: 9 } },
+			portalBtoA:  { entry: { col: 19, row: 4 }, exit: { col: 1, row: 4 } },
+			blockA: { col: 2, row: 3 },   blockC: { col: 10, row: 3 },  blockB: { col: 17, row: 12 },
+			baseC:  { col: 12, row: 8 },  baseB:  { col: 19, row: 7 },  baseA:  { col: 4, row: 9 },
+			openCells: [
+				// Zona A
+				'1,4','1,5',
+				'2,3','2,4','2,5','3,3','4,3','5,3','6,3','6,4','6,5',
+				'1,6','1,7','1,8','1,9','1,10','1,11','1,12',
+				'2,9','3,9','4,9','5,9',
+				'3,12','4,12','5,12','6,12','6,11','6,10',
+				// Zona C
+				'8,5','9,5','10,5','11,5','12,5',
+				'8,4','8,3','9,3','10,3','11,3','12,3',
+				'10,4',
+				'8,6','8,7','8,8','8,9',
+				'9,8','10,8','11,8','12,8','13,9',
+				'9,9','10,9','11,9','12,9',
+				'8,10','8,11','8,12','9,12','10,12',
+				// Zona B
+				'15,9','16,9','17,9','18,9','19,9',
+				'19,4','19,5','19,6','19,7','19,8',
+				'18,7','17,7','16,7',
+				'15,10','15,11','15,12',
+				'16,12','17,12','18,12','19,12',
+				'19,10','19,11'
+			]
+		},
+		// ──── Variacao 5 ─────────────────────────────────────────────────────────
+		// Portal A->C linha 2 | C->B linha 12 | B->A linha 7
+		{
+			startBot:    { col: 5, row: 11 },
+			portalAtoC:  { entry: { col: 6, row: 2 },  exit: { col: 8, row: 2 } },
+			portalCtoB:  { entry: { col: 13, row: 12 }, exit: { col: 15, row: 12 } },
+			portalBtoA:  { entry: { col: 15, row: 7 }, exit: { col: 6, row: 7 } },
+			blockA: { col: 1, row: 4 },   blockC: { col: 11, row: 9 },  blockB: { col: 18, row: 3 },
+			baseC:  { col: 8, row: 11 },  baseB:  { col: 17, row: 10 }, baseA:  { col: 3, row: 8 },
+			openCells: [
+				// Zona A
+				'1,1','2,1','3,1','4,1','5,1','6,1','6,2',
+				'1,2','1,3','1,4','1,5',
+				'2,5','3,5','4,5','5,5',
+				'5,6','5,7','5,8','5,9','5,10','5,11','6,7',
+				'1,6','1,7','1,8','1,9','1,10','1,11',
+				'2,8','3,8',
+				'2,11','3,11','4,11',
+				// Zona C
+				'8,2','9,2','10,2','11,2','12,2','13,2',
+				'8,3','8,4','8,5','8,6','8,7','8,8','8,9','8,10','8,11',
+				'9,9','10,9','11,9','12,9',
+				'12,10','12,11','12,12','13,12',
+				'9,11','10,11',
+				// Zona B
+				'15,7','15,8','15,9','15,10','15,11','15,12',
+				'16,3','17,3','18,3','19,3',
+				'19,2','19,1','18,1','17,1','16,1',
+				'19,4','19,5','19,6','19,7','19,8','19,9','19,10',
+				'17,10','18,10',
+				'16,12','17,12','18,12','19,12'
+			]
+		},
+		// ──── Variacao 6 ─────────────────────────────────────────────────────────
+		// Portal A->C linha 9 | C->B linha 4 | B->A linha 12
+		{
+			startBot:    { col: 3, row: 2 },
+			portalAtoC:  { entry: { col: 6, row: 9 },  exit: { col: 8, row: 9 } },
+			portalCtoB:  { entry: { col: 13, row: 4 }, exit: { col: 15, row: 4 } },
+			portalBtoA:  { entry: { col: 19, row: 12 }, exit: { col: 1, row: 12 } },
+			blockA: { col: 5, row: 7 },   blockC: { col: 10, row: 11 }, blockB: { col: 16, row: 8 },
+			baseC:  { col: 9, row: 3 },   baseB:  { col: 19, row: 6 },  baseA:  { col: 2, row: 10 },
+			openCells: [
+				// Zona A
+				'1,1','2,1','3,1','4,1','5,1','6,1',
+				'6,2','6,3','6,4','6,5','6,6','6,7','6,8','6,9',
+				'1,2','1,3','1,4','1,5','1,6','1,7','1,8','1,9',
+				'5,7',
+				'2,10','1,10','1,11','1,12',
+				'2,12','3,12','4,12','5,12','6,12','6,11','6,10',
+				// Zona C
+				'8,9','9,9','10,9','11,9','12,9',
+				'8,8','8,7','8,6','8,5','8,4',
+				'9,3','9,4','8,3','13,4',
+				'8,10','8,11','8,12',
+				'9,11','10,11','11,11','12,11',
+				'9,12','10,12','11,12','12,12',
+				// Zona B
+				'15,4','16,4','17,4','18,4','19,4',
+				'19,5','19,6','19,7','19,8','19,9','19,10','19,11','19,12',
+				'15,5','15,6','15,7','15,8','15,9','15,10',
+				'16,8','17,8','18,8',
+				'16,10','17,10','18,10','15,11','15,12','16,12','17,12','18,12'
+			]
+		},
+		// ──── Variacao 7 ─────────────────────────────────────────────────────────
+		// Portal A->C linha 6 | C->B linha 2 | B->A linha 9
+		{
+			startBot:    { col: 1, row: 5 },
+			portalAtoC:  { entry: { col: 6, row: 6 },  exit: { col: 8, row: 6 } },
+			portalCtoB:  { entry: { col: 13, row: 2 }, exit: { col: 15, row: 2 } },
+			portalBtoA:  { entry: { col: 15, row: 9 }, exit: { col: 6, row: 9 } },
+			blockA: { col: 4, row: 2 },   blockC: { col: 12, row: 8 },  blockB: { col: 19, row: 5 },
+			baseC:  { col: 9, row: 7 },   baseB:  { col: 16, row: 12 }, baseA:  { col: 1, row: 9 },
+			openCells: [
+				// Zona A
+				'1,1','2,1','3,1','4,1','5,1','6,1',
+				'4,2','3,2','2,2','1,2',
+				'1,3','1,4','1,5','1,6',
+				'2,6','3,6','4,6','5,6','6,6',
+				'6,5','6,4','6,3','6,2',
+				'1,7','1,8','1,9','6,9',
+				'2,9','3,9','4,9','5,9',
+				'1,10','1,11','1,12',
+				'2,12','3,12','4,12','5,12',
+				// Zona C
+				'8,2','9,2','10,2','11,2','12,2','13,2',
+				'8,3','8,4','8,5','8,6',
+				'9,6','9,7','9,8',
+				'8,7','8,8','8,9',
+				'12,7','12,8','12,9','12,10','12,11','12,12',
+				'10,11','11,11',
+				'13,9',
+				// Zona B
+				'15,2','16,2','17,2','18,2','19,2',
+				'19,3','19,4','19,5','19,6',
+				'15,3','15,4','15,5','15,6','15,7','15,8','15,9',
+				'16,9','17,9','18,9',
+				'15,10','15,11','15,12',
+				'16,12','17,12','18,12','19,12',
+				'19,11','19,10','19,9','19,8'
+			]
+		},
+		// ──── Variacao 8 ─────────────────────────────────────────────────────────
+		// Portal A->C linha 10 | C->B linha 7 | B->A linha 3
+		{
+			startBot:    { col: 3, row: 13 },
+			portalAtoC:  { entry: { col: 6, row: 10 }, exit: { col: 8, row: 10 } },
+			portalCtoB:  { entry: { col: 13, row: 7 }, exit: { col: 15, row: 7 } },
+			portalBtoA:  { entry: { col: 19, row: 3 }, exit: { col: 1, row: 3 } },
+			blockA: { col: 5, row: 12 },  blockC: { col: 9, row: 6 },   blockB: { col: 17, row: 5 },
+			baseC:  { col: 12, row: 11 }, baseB:  { col: 15, row: 13 }, baseA:  { col: 4, row: 4 },
+			openCells: [
+				// Zona A
+				'1,3','1,4','1,5','1,6','1,7','1,8','1,9','1,10',
+				'2,4','3,4','4,4',
+				'2,10','3,10','4,10','5,10','6,10',
+				'1,11','1,12','1,13',
+				'2,12','3,12','4,12','5,12',
+				'2,13','3,13','4,13','5,13',
+				'6,13','6,12','6,11',
+				// Zona C
+				'8,7','9,7','10,7','11,7','12,7','13,7',
+				'8,6','9,6','9,5','9,4','9,3','9,2','9,1',
+				'10,1','11,1','12,1','13,1',
+				'8,8','8,9','8,10',
+				'9,10','10,10','11,10','12,10',
+				'12,11','12,12','11,12',
+				'8,11','8,12',
+				// Zona B
+				'15,7','16,7','17,7','18,7','19,7',
+				'19,3','19,4','19,5','19,6',
+				'19,8','19,9','19,10','19,11','19,12','19,13',
+				'15,8','15,9','15,10','15,11','15,12','15,13',
+				'17,5','17,6',
+				'16,13','17,13','18,13'
+			]
+		},
+		// ──── Variacao 9 ─────────────────────────────────────────────────────────
+		// Portal A->C linha 4 | C->B linha 10 | B->A linha 6
+		{
+			startBot:    { col: 1, row: 1 },
+			portalAtoC:  { entry: { col: 6, row: 4 },  exit: { col: 8, row: 4 } },
+			portalCtoB:  { entry: { col: 13, row: 10 }, exit: { col: 15, row: 10 } },
+			portalBtoA:  { entry: { col: 15, row: 6 }, exit: { col: 6, row: 6 } },
+			blockA: { col: 2, row: 3 },   blockC: { col: 9, row: 8 },   blockB: { col: 18, row: 11 },
+			baseC:  { col: 11, row: 3 },  baseB:  { col: 19, row: 8 },  baseA:  { col: 5, row: 11 },
+			openCells: [
+				// Zona A
+				'1,1','2,1','3,1','4,1','5,1','6,1',
+				'6,2','6,3','6,4',
+				'1,2','1,3','1,4',
+				'2,3',
+				'1,5','1,6','6,6',
+				'2,6','3,6','4,6','5,6',
+				'1,7','1,8','1,9','1,10','1,11',
+				'2,11','3,11','4,11','5,11',
+				'3,10','3,11',
+				'1,12','2,12','3,12','4,12',
+				// Zona C
+				'8,4','9,4','10,4','11,4','12,4',
+				'8,3','9,3','10,3','11,3','12,3',
+				'8,5','8,6','8,7','8,8','8,9','8,10',
+				'9,8','9,9','9,10',
+				'10,10','11,10','12,10','13,10',
+				'8,11','8,12','9,12','10,12',
+				// Zona B
+				'15,6','15,7','15,8','15,9','15,10',
+				'16,6','17,6','18,6','19,6',
+				'19,7','19,8',
+				'15,11','15,12','15,13',
+				'16,11','17,11','18,11','19,11',
+				'19,12','19,13','18,13','17,13','16,13'
+			]
+		},
+		// ──── Variacao 10 ────────────────────────────────────────────────────────
+		// Portal A->C linha 12 | C->B linha 5 | B->A linha 11
+		{
+			startBot:    { col: 4, row: 1 },
+			portalAtoC:  { entry: { col: 6, row: 12 }, exit: { col: 8, row: 12 } },
+			portalCtoB:  { entry: { col: 13, row: 5 }, exit: { col: 15, row: 5 } },
+			portalBtoA:  { entry: { col: 19, row: 11 }, exit: { col: 1, row: 11 } },
+			blockA: { col: 1, row: 8 },   blockC: { col: 12, row: 7 },  blockB: { col: 17, row: 3 },
+			baseC:  { col: 10, row: 13 }, baseB:  { col: 15, row: 9 },  baseA:  { col: 3, row: 6 },
+			openCells: [
+				// Zona A
+				'1,1','2,1','3,1','4,1','5,1','6,1',
+				'1,2','1,3','1,4','1,5','1,6','1,7','1,8',
+				'2,6','3,6',
+				'2,8','3,8','4,8','5,8',
+				'1,9','1,10','1,11',
+				'2,11','3,11','4,11','5,11','6,11','6,12',
+				'1,12','1,13','2,13','3,13','4,13','5,13',
+				// Zona C
+				'8,5','9,5','10,5','11,5','12,5','13,5',
+				'8,4','8,3','8,2','8,1','9,1','10,1','11,1','12,1',
+				'8,6','8,7','8,8','8,9','8,10',
+				'12,6','12,7','12,8',
+				'8,11','8,12',
+				'9,12','9,13','10,13','11,13','12,13',
+				'8,13',
+				// Zona B
+				'15,5','16,5','17,5','18,5','19,5',
+				'17,3','17,4',
+				'19,4','19,5','19,6','19,7','19,8','19,9','19,10','19,11',
+				'15,6','15,7','15,8','15,9','15,10','15,11',
+				'16,9',
+				'16,11','17,11','18,11'
+			]
+		}
+	];
 
-    const mazeWalls = [];
-    for (let row = 0; row < ROWS; row += 1) {
-	    for (let col = 0; col < COLS; col += 1) {
-		    const key = col + ',' + row;
-		    const isBorder = row === 0 || row === ROWS - 1 || col === 0 || col === COLS - 1;
-		    if (isBorder || !openCells.has(key)) {
-			    mazeWalls.push({ col, row });
-		    }
-	    }
-    }
+	function updateDevVariationInfo() {
+		if (!devVariationInfo || activeVariationIndex < 0) { return; }
+		devVariationInfo.textContent = 'DEV: variacao ' + (activeVariationIndex + 1) + '/' + lessonVariations.length;
+	}
 
-    const wallSet = new Set(mazeWalls.map(wall => wall.col + ',' + wall.row));
+	function applyVariationByIndex(index) {
+		const v = lessonVariations[index];
+		activeVariationIndex = index;
+
+		startBot        = { col: v.startBot.col,       row: v.startBot.row };
+		portalAtoCEntry = { col: v.portalAtoC.entry.col, row: v.portalAtoC.entry.row };
+		portalAtoCExit  = { col: v.portalAtoC.exit.col,  row: v.portalAtoC.exit.row };
+		portalCtoBEntry = { col: v.portalCtoB.entry.col, row: v.portalCtoB.entry.row };
+		portalCtoBExit  = { col: v.portalCtoB.exit.col,  row: v.portalCtoB.exit.row };
+		portalBtoAEntry = { col: v.portalBtoA.entry.col, row: v.portalBtoA.entry.row };
+		portalBtoAExit  = { col: v.portalBtoA.exit.col,  row: v.portalBtoA.exit.row };
+
+		// Update base positions (mutate existing objects to keep references stable)
+		const baseA = bases.find(function (b) { return b.id === 'baseA'; });
+		const baseC = bases.find(function (b) { return b.id === 'baseC'; });
+		const baseB = bases.find(function (b) { return b.id === 'baseB'; });
+		if (baseA) { baseA.col = v.baseA.col; baseA.row = v.baseA.row; }
+		if (baseC) { baseC.col = v.baseC.col; baseC.row = v.baseC.row; }
+		if (baseB) { baseB.col = v.baseB.col; baseB.row = v.baseB.row; }
+
+		// Update block initial positions and reset
+		initialBlocks = {
+			A: { col: v.blockA.col, row: v.blockA.row },
+			C: { col: v.blockC.col, row: v.blockC.row },
+			B: { col: v.blockB.col, row: v.blockB.row }
+		};
+		for (const block of blocks) {
+			const init = initialBlocks[block.id];
+			block.col = init.col;
+			block.row = init.row;
+			block.delivered = false;
+		}
+
+		// Build open cell set, ensuring all key positions are traversable
+		openCells = new Set(v.openCells);
+		openCells.add(startBot.col + ',' + startBot.row);
+		openCells.add(portalAtoCEntry.col + ',' + portalAtoCEntry.row);
+		openCells.add(portalAtoCExit.col + ',' + portalAtoCExit.row);
+		openCells.add(portalCtoBEntry.col + ',' + portalCtoBEntry.row);
+		openCells.add(portalCtoBExit.col + ',' + portalCtoBExit.row);
+		openCells.add(portalBtoAEntry.col + ',' + portalBtoAEntry.row);
+		openCells.add(portalBtoAExit.col + ',' + portalBtoAExit.row);
+		for (const b of bases) { openCells.add(b.col + ',' + b.row); }
+		for (const bid of ['A', 'C', 'B']) {
+			const p = initialBlocks[bid];
+			openCells.add(p.col + ',' + p.row);
+		}
+
+		rebuildMazeWalls();
+		updateDevVariationInfo();
+	}
+
+	function selectRandomVariationOnLessonStart() {
+		applyVariationByIndex(Math.floor(Math.random() * lessonVariations.length));
+	}
+
+	function selectNextVariationForDev() {
+		applyVariationByIndex((activeVariationIndex + 1) % lessonVariations.length);
+		resetLesson();
+		statusEl.className = 'status';
+		statusEl.textContent = 'DEV: variacao ' + (activeVariationIndex + 1) + '/' + lessonVariations.length + ' selecionada.';
+	}
 
     let state = {
     	botCol: startBot.col,
     	botRow: startBot.row,
-    	carryingBlockId: null,
-		doorCtoBOpen: false,
-		doorBtoAOpen: false
+    	carryingBlockId: null
     };
 
     function buildGrid() {
@@ -3730,26 +4860,26 @@
     }
 
     function isDoorCtoBCell(col, row) {
-	    return col === doorCtoBCell.col && row === doorCtoBCell.row;
+	    return false; // portas removidas — apenas portais
     }
 
     function isDoorBtoACell(col, row) {
-	    return col === doorBtoACell.col && row === doorBtoACell.row;
+	    return false; // portas removidas — apenas portais
     }
 
 	function isPortalAtoCEntryCell(col, row) {
 	    return col === portalAtoCEntry.col && row === portalAtoCEntry.row;
 	}
 
+	function isPortalCtoBEntryCell(col, row) {
+	    return col === portalCtoBEntry.col && row === portalCtoBEntry.row;
+	}
+
+	function isPortalBtoAEntryCell(col, row) {
+	    return col === portalBtoAEntry.col && row === portalBtoAEntry.row;
+	}
+
     function isWall(col, row) {
-	    if (!state.doorCtoBOpen && isDoorCtoBCell(col, row)) {
-	    	return true;
-	    }
-
-	    if (!state.doorBtoAOpen && isDoorBtoACell(col, row)) {
-    		return true;
-    	}
-
     	return wallSet.has(col + ',' + row);
     }
 
@@ -3771,81 +4901,26 @@
     		mazeLayer.appendChild(wallCell);
     	}
 
-		function renderDoorAt(door) {
-			const doorWrapper = document.createElement('div');
-			doorWrapper.className = 'maze-cell';
-			doorWrapper.style.transform = 'translate(' + (door.col * CELL) + 'px,' + (door.row * CELL) + 'px)';
-
-			const doorVisual = document.createElement('div');
-			doorVisual.className = 'maze-door';
-
-			const doorFrame = document.createElement('span');
-			doorFrame.className = 'maze-door-frame';
-
-			const leftPanel = document.createElement('span');
-			leftPanel.className = 'maze-door-panel left';
-			const rightPanel = document.createElement('span');
-			rightPanel.className = 'maze-door-panel right';
-
-			const leftDetail = document.createElement('span');
-			leftDetail.className = 'maze-door-detail';
-			const rightDetail = document.createElement('span');
-			rightDetail.className = 'maze-door-detail';
-			leftPanel.appendChild(leftDetail);
-			rightPanel.appendChild(rightDetail);
-
-			const leftHingeTop = document.createElement('span');
-			leftHingeTop.className = 'maze-door-hinge left top';
-			const leftHingeBottom = document.createElement('span');
-			leftHingeBottom.className = 'maze-door-hinge left bottom';
-			const rightHingeTop = document.createElement('span');
-			rightHingeTop.className = 'maze-door-hinge right top';
-			const rightHingeBottom = document.createElement('span');
-			rightHingeBottom.className = 'maze-door-hinge right bottom';
-
-			const handleLeft = document.createElement('span');
-			handleLeft.className = 'maze-door-handle left';
-			const handleRight = document.createElement('span');
-			handleRight.className = 'maze-door-handle right';
-
-			doorVisual.appendChild(doorFrame);
-			doorVisual.appendChild(leftPanel);
-			doorVisual.appendChild(rightPanel);
-			doorVisual.appendChild(leftHingeTop);
-			doorVisual.appendChild(leftHingeBottom);
-			doorVisual.appendChild(rightHingeTop);
-			doorVisual.appendChild(rightHingeBottom);
-			doorVisual.appendChild(handleLeft);
-			doorVisual.appendChild(handleRight);
-			doorWrapper.appendChild(doorVisual);
-			mazeLayer.appendChild(doorWrapper);
+		function renderPortal(pos, labelText, isExit) {
+			const cell = document.createElement('div');
+			cell.className = 'maze-cell';
+			cell.style.transform = 'translate(' + (pos.col * CELL) + 'px,' + (pos.row * CELL) + 'px)';
+			const visual = document.createElement('div');
+			visual.className = 'maze-portal' + (isExit ? ' exit' : '');
+			const label = document.createElement('span');
+			label.className = 'maze-portal-label';
+			label.textContent = labelText;
+			visual.appendChild(label);
+			cell.appendChild(visual);
+			mazeLayer.appendChild(cell);
 		}
 
-		if (!state.doorCtoBOpen) {
-			renderDoorAt(doorCtoBCell);
-		}
-
-		if (!state.doorBtoAOpen) {
-			renderDoorAt(doorBtoACell);
-		}
-
-		const portalEntryCell = document.createElement('div');
-		portalEntryCell.className = 'maze-cell';
-		portalEntryCell.style.transform = 'translate(' + (portalAtoCEntry.col * CELL) + 'px,' + (portalAtoCEntry.row * CELL) + 'px)';
-		const portalEntryVisual = document.createElement('div');
-		portalEntryVisual.className = 'maze-portal';
-		portalEntryVisual.textContent = 'A->C';
-		portalEntryCell.appendChild(portalEntryVisual);
-		mazeLayer.appendChild(portalEntryCell);
-
-		const portalExitCell = document.createElement('div');
-		portalExitCell.className = 'maze-cell';
-		portalExitCell.style.transform = 'translate(' + (portalAtoCExit.col * CELL) + 'px,' + (portalAtoCExit.row * CELL) + 'px)';
-		const portalExitVisual = document.createElement('div');
-		portalExitVisual.className = 'maze-portal exit';
-		portalExitVisual.textContent = 'C';
-		portalExitCell.appendChild(portalExitVisual);
-		mazeLayer.appendChild(portalExitCell);
+		renderPortal(portalAtoCEntry, 'A→C', false);
+		renderPortal(portalAtoCExit,  '↩A',  true);
+		renderPortal(portalCtoBEntry, 'C→B', false);
+		renderPortal(portalCtoBExit,  '↩C',  true);
+		renderPortal(portalBtoAEntry, 'B→A', false);
+		renderPortal(portalBtoAExit,  '↩B',  true);
     }
 
     function renderBases() {
@@ -4040,10 +5115,7 @@
     	setObjectiveDone(objectiveAtoC, isObjectiveAtoCComplete());
     	setObjectiveDone(objectiveCtoB, isObjectiveCtoBComplete());
     	setObjectiveDone(objectiveBtoA, isObjectiveBtoAComplete());
-
-		const doorCtoBStatus = state.doorCtoBOpen ? 'ABERTA' : 'FECHADA';
-		const doorBtoAStatus = state.doorBtoAOpen ? 'ABERTA' : 'FECHADA';
-		turnCounter.textContent = 'Portas: C->B ' + doorCtoBStatus + ' | B->A ' + doorBtoAStatus + '. Objetivos concluidos: ' + getCompletedObjectivesCount() + '/3';
+		turnCounter.textContent = 'Objetivos concluidos: ' + getCompletedObjectivesCount() + '/3';
     }
 
     function allObjectivesCompleted() {
@@ -4051,19 +5123,7 @@
     }
 
     function updateDoorState() {
-	    if (!state.doorCtoBOpen && isObjectiveAtoCComplete()) {
-	    	state.doorCtoBOpen = true;
-	    	buildMaze();
-	    	statusEl.className = 'status ok';
-	    	statusEl.textContent = 'Porta C->B liberada! Agora leve o bloco C para a base B.';
-	    }
-
-	    if (!state.doorBtoAOpen && isObjectiveCtoBComplete()) {
-	    	state.doorBtoAOpen = true;
-	    	buildMaze();
-	    	statusEl.className = 'status ok';
-	    	statusEl.textContent = 'Porta B->A liberada! Agora a base A pode receber o bloco B.';
-	    }
+	    // Sem portas — nada a fazer
     }
 
     function draw() {
@@ -4109,7 +5169,17 @@
 			state.botCol = portalAtoCExit.col;
 			state.botRow = portalAtoCExit.row;
 			statusEl.className = 'status';
-			statusEl.textContent = 'Passagem ativada: teleporte da Zona A para a Zona C.';
+			statusEl.textContent = 'Portal A→C ativado: teleportado para a Zona C.';
+		} else if (moved && isPortalCtoBEntryCell(state.botCol, state.botRow)) {
+			state.botCol = portalCtoBExit.col;
+			state.botRow = portalCtoBExit.row;
+			statusEl.className = 'status';
+			statusEl.textContent = 'Portal C→B ativado: teleportado para a Zona B.';
+		} else if (moved && isPortalBtoAEntryCell(state.botCol, state.botRow)) {
+			state.botCol = portalBtoAExit.col;
+			state.botRow = portalBtoAExit.row;
+			statusEl.className = 'status';
+			statusEl.textContent = 'Portal B→A ativado: teleportado de volta para a Zona A.';
 		}
 
 		if (state.carryingBlockId) {
@@ -4191,9 +5261,7 @@
 		state = {
 			botCol: startBot.col,
 			botRow: startBot.row,
-			carryingBlockId: null,
-			doorCtoBOpen: false,
-			doorBtoAOpen: false
+			carryingBlockId: null
 		};
 
 		resetBlocks();
@@ -4204,7 +5272,7 @@
 		draw();
 
 		statusEl.className = 'status';
-		statusEl.textContent = 'Use a passagem A->C por teleporte. Sequencia: A->C abre C->B, C->B abre B->A.';
+		statusEl.textContent = 'Use os portais: A→C, C→B e B→A para entregar todos os blocos.';
     }
 
     async function executeCommands() {
@@ -4225,6 +5293,9 @@
 
 		runBtn.disabled = true;
 		resetBtn.disabled = true;
+		if (devVariationBtn) {
+			devVariationBtn.disabled = true;
+		}
 		statusEl.className = 'status';
 		statusEl.textContent = 'Executando a fase final...';
 		let executedSteps = 0;
@@ -4235,6 +5306,9 @@
 			if (!parsed) {
 				runBtn.disabled = false;
 				resetBtn.disabled = false;
+				if (devVariationBtn) {
+					devVariationBtn.disabled = false;
+				}
 				statusEl.className = 'status err';
 				statusEl.textContent = 'Execucao cancelada: ha comando invalido no prompt.';
 				showErrorPanel(line);
@@ -4300,9 +5374,10 @@
     startPracticeBtn.addEventListener('click', startPractice);
 
     buildGrid();
-    buildMaze();
-    renderBases();
-    renderBlocks();
+    selectRandomVariationOnLessonStart();
+    if (devVariationBtn) {
+    	devVariationBtn.addEventListener('click', selectNextVariationForDev);
+    }
     resetLesson();
 
     })();

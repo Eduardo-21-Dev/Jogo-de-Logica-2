@@ -2,8 +2,70 @@
   const path = window.location.pathname.toLowerCase();
 	const PROGRESS_STORAGE_KEY = 'css-master-progress-v1';
 	const HARD_RESET_FLAG_KEY = 'css-master-hard-reset';
+	const USERNAME_STORAGE_KEY = 'css-master-username-v1';
 	const TOTAL_LESSONS = 6;
 	const LAST_PLAYABLE_LESSON = 6;
+
+	// Nota: Inicializa o modal de nome de usuario na pagina inicial.
+	function setupUsernameModal() {
+		const overlay = document.getElementById('usernameOverlay');
+		const form = document.getElementById('usernameForm');
+		const input = document.getElementById('usernameInput');
+		const errorEl = document.getElementById('usernameError');
+
+		if (!overlay || !form || !input) {
+			return;
+		}
+
+		var savedName = '';
+		try {
+			savedName = localStorage.getItem(USERNAME_STORAGE_KEY) || '';
+		} catch (e) {
+			// Ignora falhas de armazenamento.
+		}
+
+		if (savedName.trim().length > 0) {
+			overlay.classList.add('hidden');
+			return;
+		}
+
+		document.body.style.overflow = 'hidden';
+		input.focus();
+
+		form.addEventListener('submit', function (event) {
+			event.preventDefault();
+			var name = input.value.trim();
+
+			input.classList.remove('input-error');
+			errorEl.textContent = '';
+
+			if (name.length < 2) {
+				errorEl.textContent = 'O nome deve ter pelo menos 2 caracteres.';
+				input.classList.add('input-error');
+				input.focus();
+				return;
+			}
+
+			try {
+				localStorage.setItem(USERNAME_STORAGE_KEY, name);
+			} catch (e) {
+				// Ignora falhas de armazenamento.
+			}
+
+			overlay.style.animation = 'overlayFadeIn 0.25s ease reverse forwards';
+			setTimeout(function () {
+				overlay.classList.add('hidden');
+				document.body.style.overflow = '';
+			}, 220);
+		});
+
+		input.addEventListener('input', function () {
+			if (input.classList.contains('input-error')) {
+				input.classList.remove('input-error');
+				errorEl.textContent = '';
+			}
+		});
+	}
 
 	// Nota: Aplica reset de progresso quando o usuario usa Ctrl+F5.
 	function setupHardResetOnCtrlF5() {
@@ -20,6 +82,7 @@
 		try {
 			if (sessionStorage.getItem(HARD_RESET_FLAG_KEY) === '1') {
 				localStorage.removeItem(PROGRESS_STORAGE_KEY);
+				localStorage.removeItem(USERNAME_STORAGE_KEY);
 				sessionStorage.removeItem(HARD_RESET_FLAG_KEY);
 			}
 		} catch (error) {
@@ -209,6 +272,7 @@
 	}
 
 	setupHardResetOnCtrlF5();
+	setupUsernameModal();
 
 	// Nota: Escapa caracteres especiais para exibir texto com seguranca no HTML.
 	function escapeHtml(text) {

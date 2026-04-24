@@ -1,5 +1,20 @@
 # Jogo-de-Logica-2
 
+## Atualizações (24/04/2026)
+
+### Modal de nome de usuário na página inicial
+- Adicionado overlay com fundo escurecido e desfoque (`backdrop-filter: blur`) exibido ao acessar a página inicial pela primeira vez.
+- Modal centralizado e animado (`slideUp` + fade) com campo de entrada para o jogador inserir seu nome de usuário.
+- Layout visual consistente com o tema do jogo: badge decorativa, avatar, título com destaque amarelo e botão gradiente "Começar Aventura".
+- Validação de entrada: mínimo de 2 caracteres; exibe mensagem de erro inline sem recarregar a página.
+- Nome salvo no `localStorage` (`css-master-username-v1`); modal não é exibido novamente em visitas subsequentes.
+- Estilos adicionados em `app.css` (`.username-overlay`, `.username-modal`, `.username-input`, `.username-submit-btn`, etc.).
+- Lógica implementada em `app.js` via `setupUsernameModal()`, chamada no início da aplicação.
+
+### Reset de nome de usuário via Ctrl+F5
+- O atalho Ctrl+F5 agora também remove o nome de usuário salvo (`css-master-username-v1`) do `localStorage`, além do progresso das fases.
+- Ao recarregar após o reset, o modal de nome de usuário é exibido novamente.
+
 ## Alterações do Commit (20/04/2026)
 
 - Ajuste da home para utilizar 6 lições (cards e contadores atualizados para 0/6 e 0/18).

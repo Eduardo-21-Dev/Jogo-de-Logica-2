@@ -237,6 +237,39 @@
     </div>
   </main>
 
+  <!-- Modal de Nome de Usuário -->
+  <div class="username-overlay" id="usernameOverlay" role="dialog" aria-modal="true" aria-labelledby="usernameModalTitle">
+    <div class="username-modal">
+      <div class="username-modal-glow"></div>
+      <div class="username-modal-badge">
+        <i class="fas fa-gamepad"></i> Bem-vindo ao Code Challenge
+      </div>
+      <div class="username-modal-avatar">
+        <i class="fas fa-user-astronaut"></i>
+      </div>
+      <h2 class="username-modal-title" id="usernameModalTitle">Como podemos<br><span class="username-modal-highlight">te chamar?</span></h2>
+      <p class="username-modal-subtitle">Insira seu nome de jogador para começar a jornada</p>
+      <form class="username-form" id="usernameForm" autocomplete="off" novalidate>
+        <div class="username-input-wrap">
+          <i class="fas fa-user username-input-icon"></i>
+          <input
+            type="text"
+            id="usernameInput"
+            class="username-input"
+            placeholder="Seu nome de jogador..."
+            maxlength="24"
+            aria-label="Nome de usuário"
+            aria-required="true"
+          >
+        </div>
+        <p class="username-error" id="usernameError" aria-live="polite"></p>
+        <button type="submit" class="username-submit-btn">
+          <i class="fas fa-rocket"></i> Começar Aventura
+        </button>
+      </form>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
   <script src="assets/backend/app.js"></script>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Lição 6 - Fase final: troca no labirinto</title>
+	<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body class="lesson-page phase-6">
+	<header class="gamer-header">
+	<nav class="navbar navbar-dark">
+		<div class="container-fluid">
+			<div class="navbar-brand brand-gamer">
+				<a href="../index.html">
+					<img src="../assets/img/logo.jpg" alt="Logo do Jogo" class="logo-img">
+				</a>
+			</div>
+		</div>
+	</nav>
+</header>
+
+	<main class="game-shell">
+		<h1 class="title">Lição 6: fase final — troca cruzada dos blocos</h1>
+
+		<section id="tutorialPanel" class="tutorial-panel">
+			<p class="tutorial-tag">Desafio final</p>
+			<h2>Três zonas: A, C e B com labirintos diferentes</h2>
+			<p>
+				Objetivo desta fase: realizar uma troca completa de blocos entre três zonas separadas.
+				Leve o bloco da Área A para a base C, o bloco da Área C para a base B e o bloco da Área B para a base A.
+			</p>
+			<div class="tutorial-box">
+				<p>Regras da fase final:</p>
+				<ul>
+					<li>1. Use pegar() para carregar um bloco e largar() para soltar</li>
+				<li>2. Existe uma passagem A→C que teleporta o jogador para a Zona C</li>
+				<li>3. A porta C→B inicia fechada e abre somente após A→C</li>
+				<li>4. A porta B→A inicia fechada e abre somente após C→B</li>
+				<li>5. A base A fica isolada até a porta B→A abrir</li>
+					<li>6. A fase termina apenas com os 3 blocos nas bases corretas</li>
+				</ul>
+			</div>
+			<button id="startPracticeBtn" class="btn-start-practice" type="button">Ir para a prática</button>
+		</section>
+
+		<section id="practicePanel" class="layout hidden">
+			<article class="panel">
+				<h2>Comandos do jogador</h2>
+				<p class="hint">Três zonas separadas: use o teleporte A→C e conclua A→C, C→B e B→A.</p>
+
+				<textarea id="cmdInput" spellcheck="false"></textarea>
+
+				<div class="buttons">
+					<button class="btn-run" id="runBtn" type="button">Executar</button>
+					<button class="btn-reset" id="resetBtn" type="button">Resetar</button>
+				</div>
+				<button class="btn-docs" id="docsBtn" type="button">Docs</button>
+
+				<p id="status" class="status">Objetivo: concluir a troca A→C, C→B e B→A para vencer a fase final.</p>
+				<p id="turnCounter" class="turn-counter">Portas: C→B FECHADA | B→A FECHADA. Objetivos concluídos: 0/3</p>
+
+				<ul class="phase-objectives" aria-label="Objetivos da fase">
+				<li id="objectiveAtoC" class="phase-objective">Levar bloco A para a base C</li>
+				<li id="objectiveCtoB" class="phase-objective">Levar bloco C para a base B</li>
+				<li id="objectiveBtoA" class="phase-objective">Levar bloco B para a base A</li>
+				</ul>
+
+				<div id="errorPanel" class="error-panel hidden" role="alert" aria-live="assertive">
+					<p class="error-panel-title">Comando inválido</p>
+					<p id="errorPanelMsg" class="error-panel-msg"></p>
+					<button class="error-panel-close" id="errorPanelClose" type="button">Fechar painel</button>
+				</div>
+
+				<div id="docsPanel" class="docs-panel hidden" role="dialog" aria-live="polite" aria-label="Documentacao de funcoes">
+					<p class="docs-panel-title">Funções disponíveis</p>
+					<ul class="docs-panel-list">
+						<li>moverDireita</li>
+						<li>moverEsquerda</li>
+						<li>moverCima</li>
+						<li>moverBaixo</li>
+						<li>Com parametro: moverDireita(3)</li>
+						<li>pegar()</li>
+						<li>largar()</li>
+					</ul>
+					<p class="docs-panel-tip">A passagem A→C teleporta o jogador para a Zona C. Cadeia de portas: A→C abre C→B e C→B abre B→A.</p>
+					<button class="docs-panel-close" id="docsPanelClose" type="button">Fechar Docs</button>
+				</div>
+			</article>
+
+			<article class="panel arena-wrap">
+				<h2>Área do labirinto final</h2>
+				<p class="arena-info">Leve os blocos para as bases de troca e desbloqueie a porta C→B no meio da partida.</p>
+
+				<div class="arena" id="arena">
+					<div class="board" id="board">
+						<div class="arena-grid" id="arenaGrid"></div>
+						<div class="maze-layer" id="mazeLayer" aria-hidden="true"></div>
+						<div class="base-layer" id="baseLayer" aria-hidden="true"></div>
+						<div class="package-layer" id="packageLayer" aria-hidden="true"></div>
+						<div class="entity-cell" id="botCell" aria-label="Boneco">
+							<div class="bot"></div>
+						</div>
+					</div>
+				</div>
+			</article>
+		</section>
+
+		<div id="finalResultsPanel" class="final-results-panel hidden" role="dialog" aria-modal="true" aria-label="Resultados finais do jogo">
+			<div class="frp-card">
+
+				<!-- ── Cabeçalho gradiente ── -->
+				<div class="frp-header">
+					<div class="frp-trophy-ring">
+						<span class="frp-trophy" aria-hidden="true">🏆</span>
+					</div>
+					<p class="frp-congrats-label">Jogo concluído!</p>
+					<h2 class="frp-player-name" id="frpPlayerName">Jogador</h2>
+					<p id="finalResultsSub" class="frp-sub-text"></p>
+				</div>
+
+				<!-- ── Stats ── -->
+				<div class="frp-stats-row">
+					<div class="frp-stat-pill">
+						<span class="frp-stat-icon" aria-hidden="true">⏱️</span>
+						<span class="frp-stat-label">Tempo total</span>
+						<strong id="finalTempo" class="frp-stat-value">--</strong>
+					</div>
+					<div class="frp-stat-pill">
+						<span class="frp-stat-icon" aria-hidden="true">⭐</span>
+						<span class="frp-stat-label">Estrelas — fase 6</span>
+						<div id="finalStarRating" class="frp-mini-stars star-rating">
+							<span class="star">&#9733;</span>
+							<span class="star">&#9733;</span>
+							<span class="star">&#9733;</span>
+						</div>
+					</div>
+					<div class="frp-stat-pill">
+						<span class="frp-stat-icon" aria-hidden="true">🏅</span>
+						<span class="frp-stat-label">Total de estrelas</span>
+						<strong id="finalTotalStars" class="frp-stat-value">-- / 18</strong>
+					</div>
+				</div>
+
+				<!-- ── Posição no ranking ── -->
+				<div class="frp-rank-hero-wrap">
+					<span class="frp-rank-hero-label">Sua posição no ranking</span>
+					<p id="finalRankPos" class="frp-rank-hero-num">Carregando...</p>
+				</div>
+
+				<!-- ── Tabela de jogadores próximos ── -->
+				<div class="frp-nearby-section">
+					<p class="frp-nearby-label">Jogadores próximos</p>
+					<div class="frp-table-wrap">
+						<table class="frp-table">
+							<thead>
+								<tr>
+									<th class="frp-th frp-th-pos">#</th>
+									<th class="frp-th">Jogador</th>
+									<th class="frp-th frp-th-c">Fases</th>
+									<th class="frp-th frp-th-c">⭐</th>
+									<th class="frp-th frp-th-c">Tempo</th>
+								</tr>
+							</thead>
+							<tbody id="finalRankBody">
+								<tr><td colspan="5" class="frp-td-loading">Carregando ranking...</td></tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+
+				<!-- ── Ação ── -->
+				<div class="frp-actions">
+					<a class="frp-btn-home" href="../index.html">
+						<span aria-hidden="true">🏠</span> Página Inicial
+					</a>
+				</div>
+
+			</div>
+		</div>
+
+		<div id="failPanel" class="fail-panel hidden" role="dialog" aria-live="assertive" aria-label="Falha na tentativa">
+			<div class="fail-card">
+				<h2 class="fail-title">Não deu certo!</h2>
+				<p class="fail-lead">Esses foram os problemas encontrados:</p>
+				<ul class="fail-list">
+					<li>O jogador não concluiu todos os objetivos de troca.</li>
+				</ul>
+				<div class="fail-actions">
+					<button class="btn-fail-ok" id="failPanelOk" type="button">Ok</button>
+				</div>
+			</div>
+		</div>
+	</main>
+
+	<script src="../assets/backend/api.js"></script>
+	<script src="../assets/backend/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <title>Ranking — Code Senac Challenge</title>
+</head>
+
+<body class="ranking-page">
+
+  <!-- Header -->
+  <header class="gamer-header">
+    <nav class="navbar navbar-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand brand-gamer" href="../index.html">
+          <img src="../assets/img/logo.jpg" alt="Logo do Jogo" class="logo-img">
+        </a>
+        <a href="../index.html" class="btn-voltar-ranking">
+          <i class="fas fa-arrow-left"></i> Voltar ao Jogo
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="ranking-hero">
+    <div class="ranking-hero-inner">
+      <div class="ranking-hero-badge">
+        <i class="fas fa-trophy"></i> Classificação Global
+      </div>
+      <h1 class="ranking-hero-title">
+        Ranking <span class="ranking-hero-highlight">dos Mestres</span>
+      </h1>
+      <p class="ranking-hero-sub">Os jogadores mais habilidosos do Code Senac Challenge</p>
+      <button id="btnRefresh" class="ranking-refresh-btn">
+        <i class="fas fa-sync-alt"></i> Atualizar
+      </button>
+    </div>
+  </section>
+
+  <!-- Main -->
+  <main class="ranking-main">
+    <div class="ranking-container">
+
+      <!-- Loading -->
+      <div id="rankingLoading" class="ranking-feedback-state">
+        <i class="fas fa-spinner fa-spin ranking-feedback-icon"></i>
+        <p class="ranking-feedback-text">Carregando ranking...</p>
+      </div>
+
+      <!-- Error -->
+      <div id="rankingError" class="ranking-feedback-state hidden">
+        <i class="fas fa-exclamation-triangle ranking-feedback-icon ranking-feedback-icon--error"></i>
+        <p class="ranking-feedback-text" id="rankingErrorMsg">Erro ao carregar ranking.</p>
+        <button id="rankingRetry" class="ranking-action-btn">
+          <i class="fas fa-redo"></i> Tentar novamente
+        </button>
+      </div>
+
+      <!-- Content -->
+      <div id="rankingContent" class="hidden">
+        <p class="ranking-count" id="rankingCount"></p>
+
+        <div class="ranking-table-wrap">
+          <table class="ranking-table" aria-label="Tabela de ranking dos jogadores">
+            <thead>
+              <tr>
+                <th class="rank-th rank-th-pos" scope="col">#</th>
+                <th class="rank-th" scope="col">Jogador</th>
+                <th class="rank-th rank-th-center" scope="col">
+                  <i class="fas fa-book-open"></i>&nbsp; Fases
+                </th>
+                <th class="rank-th rank-th-center" scope="col">
+                  <i class="fas fa-star"></i>&nbsp; Estrelas
+                </th>
+                <th class="rank-th rank-th-center" scope="col">
+                  <i class="fas fa-clock"></i>&nbsp; Tempo
+                </th>
+              </tr>
+            </thead>
+            <tbody id="rankingBody"></tbody>
+          </table>
+
+          <!-- Empty state inside table wrap -->
+          <div id="rankingEmpty" class="ranking-empty-state hidden">
+            <i class="fas fa-ghost"></i>
+            <p>Nenhum jogador encontrado ainda.</p>
+            <span>Seja o primeiro a jogar!</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="game-footer">
+    <p class="text-light">
+      <i class="fas fa-code"></i> SENAC Code Challenge &mdash; Aprenda a Codar jogando.
+    </p>
+  </footer>
+
+  <script src="../assets/backend/api.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      var loadingEl  = document.getElementById('rankingLoading');
+      var errorEl    = document.getElementById('rankingError');
+      var errorMsgEl = document.getElementById('rankingErrorMsg');
+      var retryBtn   = document.getElementById('rankingRetry');
+      var refreshBtn = document.getElementById('btnRefresh');
+      var contentEl  = document.getElementById('rankingContent');
+      var bodyEl     = document.getElementById('rankingBody');
+      var countEl    = document.getElementById('rankingCount');
+      var emptyEl    = document.getElementById('rankingEmpty');
+
+      var currentName = (localStorage.getItem('css-master-username-v1') || '').trim();
+
+      /* ── Helpers ─────────────────────────────────────────────────── */
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function formatTime(horaInicial, horaFinal) {
+        if (!horaFinal || !horaInicial) {
+          return '<span class="rank-time-none">—</span>';
+        }
+        var start = new Date(horaInicial.replace(' ', 'T'));
+        var end   = new Date(horaFinal.replace(' ', 'T'));
+        var secs  = Math.max(0, Math.round((end - start) / 1000));
+        var h = Math.floor(secs / 3600);
+        secs -= h * 3600;
+        var m = Math.floor(secs / 60);
+        var s = secs % 60;
+        if (h > 0) {
+          return h + 'h ' + (m < 10 ? '0' : '') + m + 'm';
+        }
+        return m + 'm ' + (s < 10 ? '0' : '') + s + 's';
+      }
+
+      function medalOrPos(pos) {
+        if (pos === 1) {
+          return '<span class="rank-medal rank-medal--gold" aria-label="1° lugar"><i class="fas fa-medal"></i></span>';
+        }
+        if (pos === 2) {
+          return '<span class="rank-medal rank-medal--silver" aria-label="2° lugar"><i class="fas fa-medal"></i></span>';
+        }
+        if (pos === 3) {
+          return '<span class="rank-medal rank-medal--bronze" aria-label="3° lugar"><i class="fas fa-medal"></i></span>';
+        }
+        return '<span class="rank-pos-num">' + pos + '</span>';
+      }
+
+      function buildRow(player, position) {
+        var isMe   = currentName && player.nome === currentName;
+        var phases = Array.isArray(player.fases_concluidas) ? player.fases_concluidas.length : 0;
+        var stars  = Number(player.estrelas) || 0;
+        var time   = formatTime(player.hora_inicial, player.hora_final);
+
+        var rowClass = 'rank-tr';
+        if (position === 1)      { rowClass += ' rank-tr--gold';   }
+        else if (position === 2) { rowClass += ' rank-tr--silver'; }
+        else if (position === 3) { rowClass += ' rank-tr--bronze'; }
+        if (isMe)                { rowClass += ' rank-tr--me';     }
+
+        var nameHtml = escapeHtml(player.nome);
+        if (isMe) {
+          nameHtml += ' <span class="rank-you-tag">Você</span>';
+        }
+
+        /* build filled star icons (max 6 icons representing 0-18 total stars) */
+        var starIcons = '';
+        var filledIcons = Math.round(stars / 3);
+        for (var i = 0; i < 6; i++) {
+          starIcons += i < filledIcons
+            ? '<i class="fas fa-star rank-star-filled"></i>'
+            : '<i class="far fa-star rank-star-empty"></i>';
+        }
+
+        return '<tr class="' + rowClass + '">' +
+          '<td class="rank-td rank-td-pos">' + medalOrPos(position) + '</td>' +
+          '<td class="rank-td rank-td-name"><span class="rank-player-name">' + nameHtml + '</span></td>' +
+          '<td class="rank-td rank-td-center">' +
+            '<span class="rank-phases-pill">' + phases + '<em class="rank-of"> / 6</em></span>' +
+          '</td>' +
+          '<td class="rank-td rank-td-center">' +
+            '<span class="rank-stars-cell">' + starIcons + '<span class="rank-stars-num"> ' + stars + '</span></span>' +
+          '</td>' +
+          '<td class="rank-td rank-td-center rank-td-time">' + time + '</td>' +
+        '</tr>';
+      }
+
+      /* ── Render ──────────────────────────────────────────────────── */
+
+      function showError(msg) {
+        loadingEl.classList.add('hidden');
+        contentEl.classList.add('hidden');
+        errorMsgEl.textContent = msg;
+        errorEl.classList.remove('hidden');
+      }
+
+      function showContent(players) {
+        loadingEl.classList.add('hidden');
+        errorEl.classList.add('hidden');
+        contentEl.classList.remove('hidden');
+
+        if (!players || players.length === 0) {
+          bodyEl.innerHTML = '';
+          emptyEl.classList.remove('hidden');
+          countEl.textContent = '';
+          return;
+        }
+
+        emptyEl.classList.add('hidden');
+        var n = players.length;
+        countEl.textContent = n + ' jogador' + (n !== 1 ? 'es' : '') +
+                              ' no ranking';
+
+        bodyEl.innerHTML = players.map(function (p, i) {
+          return buildRow(p, i + 1);
+        }).join('');
+      }
+
+      /* ── Load ────────────────────────────────────────────────────── */
+
+      function loadRanking() {
+        loadingEl.classList.remove('hidden');
+        errorEl.classList.add('hidden');
+        contentEl.classList.add('hidden');
+        refreshBtn.disabled = true;
+
+        GameAPI.getRanking(100)
+          .then(function (data) {
+            showContent(data.ranking || []);
+          })
+          .catch(function (err) {
+            showError(err.message || 'Não foi possível carregar o ranking.');
+          })
+          .finally(function () {
+            refreshBtn.disabled = false;
+          });
+      }
+
+      retryBtn.addEventListener('click', loadRanking);
+      refreshBtn.addEventListener('click', loadRanking);
+      loadRanking();
+    })();
+  </script>
+
+</body>
+</html>
